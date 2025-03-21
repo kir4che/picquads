@@ -17,7 +17,7 @@ const storageBucket = process.env.SUPABASE_BUCKET_NAME;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB
+    fileSize: 15 * 1024 * 1024 // 15MB
   }
 });
 
@@ -29,11 +29,13 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     if (!file) return res.status(400).json({ error: 'No file uploaded.' });
 
     const fileName = `${file.originalname}-${Date.now()}`;
-    const storageClient = supabase.storage.from(storageBucket); // 取得 Supabase 儲存空間客戶端
+    const storageClient = supabase.storage.from(storageBucket); // 取得 Supabase Bucket
 
     // 將檔案上傳到 Supabase Storage
     const { error } = await storageClient.upload(fileName, file.buffer, {
-      contentType: file.mimetype
+      contentType: 'image/jpeg',
+      upsert: false,
+      cacheControl: '1000'
     });
 
     if (error) throw new Error('Failed to upload file.');
