@@ -72,7 +72,7 @@ const CameraActions: React.FC = () => {
       <button 
         className='flex items-center justify-center ml-auto bg-white border rounded-full border-violet-500 text-violet-500 hover:bg-violet-500 hover:text-white w-9 h-9 disabled:bg-gray-400 disabled:text-white disabled:border-gray-400'
         onClick={handleStartCapture}
-        disabled={status !== 'capturing'}
+        disabled={!state.isCameraReady}
       >
         <CameraIcon className='w-6 h-6' />
       </button>

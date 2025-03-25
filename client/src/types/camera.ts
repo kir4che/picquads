@@ -22,6 +22,7 @@ export interface CameraState {
   facingMode: 'user' | 'environment'; // 相機模式（user: 前置、environment: 後置鏡頭）
   frame: Frame; // 選擇的相框
   countdown: number; // 倒數計時
+  isCameraReady: boolean; // 相機是否已經準備就緒
   capturedCount: number; // 已拍攝的照片數量
   capturedImage: string | null; // 當前拍攝的照片
   capturedImages: CapturedImage[]; // 已拍攝的所有照片
@@ -32,6 +33,7 @@ export type CameraAction =
   | { type: 'SET_FACING_MODE'; payload: 'user' | 'environment' }
   | { type: 'SELECT_FRAME'; payload: Frame }
   | { type: 'OPEN_CAMERA' }
+  | { type: 'SET_CAMERA_READY'; payload: boolean }
   | { type: 'CAPTURE_PHOTO'; payload: { url: string; timestamp: number } }
   | { type: 'STOP_CAMERA' }
   | { type: 'START_COUNTDOWN'; payload: number }

@@ -16,9 +16,10 @@ const initialState: CameraState = {
     totalCaptures: 0
   },
   countdown: 0,
+  isCameraReady: false,
   capturedCount: 0,
   capturedImages: [],
-  capturedImage: null
+  capturedImage: null,
 };
 
 const cameraReducer = (state: CameraState, action: CameraAction): CameraState => {
@@ -33,7 +34,9 @@ const cameraReducer = (state: CameraState, action: CameraAction): CameraState =>
     case 'SELECT_FRAME':
       return { ...state, status: 'idle', frame: action.payload };
     case 'OPEN_CAMERA':
-      return { ...state, status: 'capturing' };
+      return { ...state, status: 'capturing', isCameraReady: false };
+    case 'SET_CAMERA_READY':
+      return { ...state, isCameraReady: action.payload };
     case 'CAPTURE_PHOTO':
       newCapturedImages = [...state.capturedImages, {
         url: action.payload.url,
@@ -44,12 +47,13 @@ const cameraReducer = (state: CameraState, action: CameraAction): CameraState =>
       return {
         ...state,
         status: 'captured',
+        isCameraReady: false,
         capturedImages: newCapturedImages,
         capturedImage: action.payload.url,
-        capturedCount: newCapturedCount
+        capturedCount: newCapturedCount,
       };
     case 'STOP_CAMERA':
-      return { ...state, status: 'idle' };
+      return { ...state, status: 'idle', isCameraReady: false };
     case 'START_COUNTDOWN':
       return { ...state, countdown: action.payload };
     case 'UPDATE_COUNTDOWN':
@@ -149,6 +153,13 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       mediaStreamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       dispatch({ type: 'OPEN_CAMERA' });
+      
+      // 等待相機初始化完成
+      setTimeout(() => {
+        if (cameraRef.current && mediaStreamRef.current?.active)
+          dispatch({ type: 'SET_CAMERA_READY', payload: true });
+      }, 1000);
+      
       setErrorMessage(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '無法啟動相機';
