@@ -59,7 +59,7 @@ const CameraActions: React.FC = () => {
           key={duration}
           className={`w-6.5 h-6.5 backdrop-filter backdrop-blur-xl rounded-full text-xs ${
             selectedDuration === duration
-              ? 'bg-violet-500 shadow-[0_0_2px_1.5px_rgba(159,135,223,1)] text-white' 
+              ? 'bg-violet-500 shadow-[0_0_2px_1.5px_rgba(159,135,233,1)] text-white' 
               : 'bg-white text-violet-800 shadow-[0_0_2px_1.5px_white]'
           }`}
           onClick={() => setSelectedDuration(duration)}

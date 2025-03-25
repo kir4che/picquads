@@ -26,7 +26,7 @@ const CameraPreview: React.FC = () => {
         {status === 'idle' && !capturedImage && countdown === 0 && (
           <div className='flex items-center justify-center' style={{ aspectRatio: CAMERA_ASPECT_RATIO }}>
             <button
-            className="px-6 py-2 text-white rounded-full bg-violet-400 hover:bg-violet-500 focus:ring-2 focus:ring-violet-300"
+            className="px-6 py-2 text-white rounded-full bg-violet-400 hover:bg-violet-500 focus:ring-2 focus:ring-violet-500"
             onClick={openCamera}
           >
               Open Camera
