@@ -1,6 +1,7 @@
 import { Camera } from 'react-camera-pro';
 
 import { useCamera } from '../hooks/useCamera';
+import { getFrameDimensions } from '../utils/frame';
 
 import CameraActions from './CameraActions';
 
@@ -17,7 +18,9 @@ const CAMERA_ASPECT_RATIO = 1335/894;
 
 const CameraPreview: React.FC = () => {
   const { state, cameraRef, switchCamera, openCamera } = useCamera();
-  const { status, capturedImage, countdown, isMobileDevice, facingMode } = state;
+  const { status, capturedImage, countdown, isMobileDevice, facingMode, frame } = state;
+
+  const dimensions = getFrameDimensions(frame.id);
 
   return (
     <div className='flex flex-col gap-y-3'>
@@ -26,9 +29,9 @@ const CameraPreview: React.FC = () => {
         {status === 'idle' && !capturedImage && countdown === 0 && (
           <div className='flex items-center justify-center' style={{ aspectRatio: CAMERA_ASPECT_RATIO }}>
             <button
-            className="px-6 py-2 text-white rounded-full bg-violet-400 hover:bg-violet-500 focus:ring-2 focus:ring-violet-500"
-            onClick={openCamera}
-          >
+              className="px-6 py-2 text-white rounded-full bg-violet-400 hover:bg-violet-500 focus:ring-2 focus:ring-violet-500"
+              onClick={openCamera}
+            >
               Open Camera
             </button>
           </div>
@@ -36,13 +39,26 @@ const CameraPreview: React.FC = () => {
         {/* 相機拍攝預覽 */}
         {status === 'capturing' && !capturedImage && (
           <>
-            <div style={{ transform: !isMobileDevice && facingMode === 'environment' ? 'scaleX(-1)' : 'none' }}>
+            <div className="relative" style={{ transform: !isMobileDevice && facingMode === 'environment' ? 'scaleX(-1)' : 'none' }}>
               <Camera
                 ref={cameraRef}
                 facingMode={facingMode}
                 aspectRatio={CAMERA_ASPECT_RATIO}
                 errorMessages={CAMERA_ERROR_MESSAGES}
               />
+              {dimensions?.photo && (
+                <div className="absolute inset-0">
+                  <div 
+                    className="absolute h-full transform -translate-x-1/2 -translate-y-1/2 border-2 border-white top-1/2 left-1/2"
+                    style={{ aspectRatio: `${dimensions.photo.width}/${dimensions.photo.height}` }}
+                  >
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white"/>
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white"/>
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white"/>
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white"/>
+                  </div>
+                </div>
+              )}
             </div>
             {isMobileDevice && (
               <button 
