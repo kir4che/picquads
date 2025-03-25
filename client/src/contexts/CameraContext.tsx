@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useReducer, useCallback, ReactNode, useMemo, useEffect } from 'react';
+import { createContext, useRef, useReducer, useCallback, ReactNode, useMemo, useEffect } from 'react';
 
 import { CameraState, CameraAction, CameraType, CameraContextType } from '../types/camera';
 import { Frame } from '../configs/frame';
@@ -43,7 +43,7 @@ const cameraReducer = (state: CameraState, action: CameraAction): CameraState =>
       newCapturedCount = state.capturedCount + 1;
       return {
         ...state,
-        status: newCapturedCount >= state.frame.totalCaptures ? 'captured' : 'idle',
+        status: 'captured',
         capturedImages: newCapturedImages,
         capturedImage: action.payload.url,
         capturedCount: newCapturedCount
