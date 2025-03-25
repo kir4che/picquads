@@ -1,18 +1,15 @@
-import React from 'react';
+import { useError } from '../hooks/useError';
 
-import ErrorIcon from '../assets/error-close.svg?react';
+import ErrorIcon from '../assets/icons/error-close.svg?react';
 
-interface ErrorMessageProps {
-  message: string | null;
-}
-
-const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
-  if (!message) return null;
+const ErrorMessage: React.FC = () => {
+  const { errorMessage } = useError();
+  if (!errorMessage) return null;
 
   return (
-    <div className="bg-red-50 absolute top-4 left-1/2 min-w-2/3 sm:min-w-80 -translate-x-1/2 w-fit border border-red-300 text-red-400 px-4 py-3 rounded flex items-center gap-2">
+    <div className="absolute flex items-center gap-2 px-4 py-3 text-red-400 -translate-x-1/2 border border-red-300 rounded bg-red-50 top-4 left-1/2 min-w-2/3 sm:min-w-80 w-fit">
       <ErrorIcon className="w-5 h-5" />
-      <p>{message}</p>
+      <p>{errorMessage}</p>
     </div>
   );
 };

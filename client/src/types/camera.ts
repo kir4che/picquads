@@ -25,7 +25,6 @@ export interface CameraState {
   capturedCount: number; // 已拍攝的照片數量
   capturedImage: string | null; // 當前拍攝的照片
   capturedImages: CapturedImage[]; // 已拍攝的所有照片
-  cameraError: string | null; // 相機錯誤訊息
 }
 
 export type CameraAction =
@@ -41,7 +40,7 @@ export type CameraAction =
   | { type: 'CLEAR_CAPTURED_PHOTO' }
   | { type: 'COMPLETE' }
   | { type: 'RESET' }
-  | { type: 'SET_ERROR'; payload: string | null };
+  | { type: 'SET_ERROR' };
 
 export interface CameraType extends CameraProps {
   takePhoto: () => string;
@@ -51,6 +50,7 @@ export interface CameraType extends CameraProps {
 export interface CameraContextType {
   state: CameraState;
   cameraRef: React.RefObject<CameraType | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   setFrame: (frame: Frame) => void;
   switchCamera: () => void;
   openCamera: () => void;
@@ -60,4 +60,5 @@ export interface CameraContextType {
   continueCapture: () => void;
   completeCapture: () => void;
   resetCamera: () => void;
+  retry: () => void;
 }

@@ -2,6 +2,7 @@ import { createContext, useRef, useReducer, useCallback, ReactNode, useMemo, use
 
 import { CameraState, CameraAction, CameraType, CameraContextType } from '../types/camera';
 import { Frame } from '../configs/frame';
+import { useError } from '../hooks/useError';
 
 const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -17,8 +18,7 @@ const initialState: CameraState = {
   countdown: 0,
   capturedCount: 0,
   capturedImages: [],
-  capturedImage: null,
-  cameraError: null
+  capturedImage: null
 };
 
 const cameraReducer = (state: CameraState, action: CameraAction): CameraState => {
@@ -33,7 +33,7 @@ const cameraReducer = (state: CameraState, action: CameraAction): CameraState =>
     case 'SELECT_FRAME':
       return { ...state, status: 'idle', frame: action.payload };
     case 'OPEN_CAMERA':
-      return { ...state, status: 'capturing', cameraError: null };
+      return { ...state, status: 'capturing' };
     case 'CAPTURE_PHOTO':
       newCapturedImages = [...state.capturedImages, {
         url: action.payload.url,
@@ -69,7 +69,7 @@ const cameraReducer = (state: CameraState, action: CameraAction): CameraState =>
     case 'RESET':
       return initialState;
     case 'SET_ERROR':
-      return { ...state, status: 'error', cameraError: action.payload };
+      return { ...state, status: 'error' };
     default:
       return state;
   }
@@ -79,12 +79,14 @@ const CameraContext = createContext<CameraContextType | null>(null);
 
 export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cameraReducer, initialState);
+  const { setErrorMessage } = useError();
 
   const cameraRef = useRef<CameraType>(null); // 相機
   const videoRef = useRef<HTMLVideoElement | null>(null); // 相機畫面
   const canvasRef = useRef<HTMLCanvasElement | null>(null); // 照片（從 video 擷取的）
   const mediaStreamRef = useRef<MediaStream | null>(null); // 相機串流 MediaStream
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null); // 倒數計時器
+  const lastActionRef = useRef<(() => void) | null>(null); // 上次失敗的操作
 
   useEffect(() => {
     // unmount 時，停止 MediaStream 並清除倒數計時器。
@@ -147,13 +149,14 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       mediaStreamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       dispatch({ type: 'OPEN_CAMERA' });
+      setErrorMessage(null);
     } catch (err) {
-      dispatch({ 
-        type: 'SET_ERROR', 
-        payload: err instanceof Error ? err.message : '無法啟動相機'
-      });
+      const errorMessage = err instanceof Error ? err.message : '無法啟動相機';
+      dispatch({ type: 'SET_ERROR' });
+      setErrorMessage(errorMessage);
+      lastActionRef.current = () => initializeCamera(forcefacingMode);
     }
-  }, [tryGetUserMedia]);
+  }, [tryGetUserMedia, setErrorMessage]);
 
   // 設定需要拍攝的照片總數
   const setFrame = useCallback((frame: Frame) => {
@@ -176,7 +179,10 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   // 拍照
   const capturePhoto = useCallback(() => {
     if (!cameraRef.current) {
-      dispatch({ type: 'SET_ERROR', payload: '相機未初始化' });
+      const errorMessage = '相機未初始化';
+      dispatch({ type: 'SET_ERROR' });
+      setErrorMessage(errorMessage);
+      lastActionRef.current = capturePhoto;
       return;
     }
 
@@ -192,13 +198,22 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       stopExistingMediaStream();
+      setErrorMessage(null);
     } catch (err) {
-      dispatch({ 
-        type: 'SET_ERROR', 
-        payload: err instanceof Error ? err.message : '照片拍攝失敗'
-      });
+      const errorMessage = err instanceof Error ? err.message : '照片拍攝失敗';
+      dispatch({ type: 'SET_ERROR' });
+      setErrorMessage(errorMessage);
+      lastActionRef.current = capturePhoto;
     }
-  }, [stopExistingMediaStream]);
+  }, [stopExistingMediaStream, setErrorMessage]);
+
+  // 重試上次失敗的操作
+  const retry = useCallback(() => {
+    if (lastActionRef.current) {
+      lastActionRef.current();
+      lastActionRef.current = null;
+    } else initializeCamera(); // 若沒有上次操作的紀錄，則重新初始化相機。
+  }, [initializeCamera]);
 
   // 開始倒數
   const startCountdown = useCallback((duration: number) => {
@@ -256,6 +271,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     <CameraContext.Provider value={{ 
       state,
       cameraRef,
+      canvasRef,
       capturePhoto,
       setFrame,
       switchCamera,
@@ -264,7 +280,8 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       retakePhoto,
       continueCapture,
       completeCapture,
-      resetCamera
+      resetCamera,
+      retry
     }}>
       <canvas ref={canvasRef} style={{ display: 'none' }} />
       {children}

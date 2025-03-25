@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useError } from '../hooks/useError';
 import { useCamera } from '../hooks/useCamera';
 
 import CameraIcon from '../assets/icons/camera.svg?react';
@@ -8,6 +9,7 @@ const DURATION_OPTIONS = [0, 3, 5, 10] as const;
 const INITIAL_DURATION = 3;
 
 const CameraActions: React.FC = () => {
+  const { setErrorMessage } = useError();
   const { state, capturePhoto, retakePhoto, completeCapture, continueCapture, startCountdown } = useCamera();
   const { status, frame, capturedImages, countdown } = state;
 
@@ -16,13 +18,14 @@ const CameraActions: React.FC = () => {
   const handleStartCapture = () => {
     if (selectedDuration === 0) capturePhoto();
     else if (selectedDuration !== null) startCountdown(selectedDuration);
+    else setErrorMessage('請選擇倒數計時時間');
   };
 
   // 拍完照後：重拍、繼續拍照、完成拍照按鈕
   if (status === 'captured') {
     return (
       <div className="z-10 flex items-center justify-center w-full gap-x-4">
-          <button 
+        <button 
           className="px-3.5 py-1.5 bg-white border-2 rounded-full text-violet-500 border-violet-500 hover:bg-violet-500 hover:text-white"
           onClick={retakePhoto}
         >

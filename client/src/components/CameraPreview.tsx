@@ -7,10 +7,10 @@ import CameraActions from './CameraActions';
 import ChangeCameraIcon from '../assets/icons/change-camera.svg?react';
 
 const CAMERA_ERROR_MESSAGES = {
-  noCameraAccessible: '無法存取相機',
+  canvas: '無法取得照片',
   permissionDenied: '請允許使用相機權限',
+  noCameraAccessible: '無法存取相機',
   switchCamera: '無法切換相機',
-  canvas: '無法取得照片'
 } as const;
 
 const CAMERA_ASPECT_RATIO = 1335/894; 
