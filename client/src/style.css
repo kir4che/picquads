@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --breakpoint-xs: 480px;
+
+  --color-pink-50: #F9F0F5;
+  --color-pink-100: #FFCFE8;
+  --color-pink-200: #FEBADE;
+  --color-pink-300: #FA9CCD;
+  --color-pink-400: #F181BB;
+  --color-pink-500: #E866A8;
+  --color-pink-600: #D05C92;
+
+  --color-violet-50: #F9F7FF;
+  --color-violet-100: #EFE8FF;
+  --color-violet-200: #DED0FF;
+  --color-violet-300: #CDB3FF;
+  --color-violet-400: #BCA6FF;
+  --color-violet-500: #9F87E9;
+  --color-violet-600: #8F75E1;
+}
+
+body {
+  @apply flex flex-col min-h-screen;
+}
+
+#root {
+  @apply flex-1 bg-gradient-to-br from-white to-violet-100;
+}
+
+main {
+  @apply py-8 ;
+}
+
+button {
+  @apply cursor-pointer disabled:cursor-not-allowed;
+}
