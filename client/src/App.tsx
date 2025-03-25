@@ -9,11 +9,15 @@ import PhotoStrip from './components/PhotoStrip';
 import PhotoActions from './components/PhotoActions';
 
 const App: React.FC = () => {
-  const { state, setFrame, retry } = useCamera();
+  const { state, setFrame, retry, resetCamera } = useCamera();
 
   return (
     <main>
-      <h1 className="text-3xl font-bold mb-8 text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-35% via-white via-65% to-violet-400 to-80%">
+      <h1
+        role="link"
+        onClick={resetCamera}
+        className="text-3xl font-bold mb-8 text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-35% via-white via-65% to-violet-400 to-80% cursor-pointer hover:opacity-80 transition-opacity"
+      >
         PicQuads
       </h1>
       {state.status === 'selectingFrame' && (
