@@ -1,57 +1,56 @@
-import React from 'react';
-import CameraPreview from './components/CameraPreview';
-import ErrorMessage from './components/ErrorMessage';
-import PhotoGrid from './components/PhotoGrid';
+import { frameMap } from './configs/frame';
+import { getFrameList } from './utils/frame';
 import { useCamera } from './hooks/useCamera';
 
+import ErrorMessage from './components/ErrorMessage';
+import CameraPreview from './components/CameraPreview';
+import PhotoEditor from './components/PhotoEditor';
+import PhotoStrip from './components/PhotoStrip';
+import PhotoActions from './components/PhotoActions';
+
 const App: React.FC = () => {
-  const {
-    state,
-    handleStartCamera,
-    handleCapture,
-    handleRetake,
-    handleContinue,
-    handleComplete,
-    handleReset,
-    toggleCamera,
-    startCountdown
-  } = useCamera();
+  const { state, setFrame, retry } = useCamera();
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-sky-100 via-white to-sky-300">
-      <h1 className="text-3xl font-bold text-center text-sky-400">PicQuads</h1>
-      <div className="flex flex-col justify-center px-4 py-8 gap-y-6 gap-x-12 lg:flex-row">
-        <div className='flex flex-col w-full max-w-2xl gap-4 mx-auto lg:mx-0'>
-          {!state.isCompleted && (
-            <CameraPreview
-              isCapturing={state.isCapturing}
-              isFrontCamera={state.isFrontCamera}
-              capturedImage={state.capturedImage}
-              countdown={state.countdown}
-              onCapture={handleCapture}
-              onRetake={handleRetake}
-              onContinue={handleContinue}
-              onComplete={handleComplete}
-              totalPhotos={state.capturedImages.length}
-              onStartCountdown={startCountdown}
-              onToggleCamera={toggleCamera}
-              onStartCamera={handleStartCamera}
-            />
-          )}
-        </div>
-        <div className='flex flex-col w-full mx-auto lg:w-auto lg:mx-0'>
-          <div className='flex flex-col flex-1 px-12 pb-8 bg-white rounded-lg shadow-md'>
-            <p className="py-4 text-center">Photo taken: {state.capturedImages.length} / 4</p>
-            <PhotoGrid 
-              images={state.capturedImages} 
-              showDownload={state.isCompleted}
-              onReset={handleReset}
-            />
+    <main>
+      <h1 className="text-3xl font-bold mb-8 text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-35% via-white via-65% to-violet-400 to-80%">
+        PicQuads
+      </h1>
+      {state.status === 'selectingFrame' && (
+        <>
+          <p className='text-center text-gray-800'>Choose Frame</p>
+          <div className="grid grid-cols-2 gap-4 p-4 mx-auto w-fit place-items-center">
+            {getFrameList().map((frame) => (
+              <button key={frame.id} onClick={() => setFrame(frame)}>
+                <img src={frameMap[frame.id]} alt={frame.id} className="h-45" />
+              </button>
+            ))}
           </div>
+        </>
+      )}
+      {(state.status === 'idle' || state.status === 'capturing' || state.status === 'captured') && (
+        <div className='w-full max-w-2xl px-4 mx-auto'>
+          <CameraPreview />
         </div>
-      </div>
-      <ErrorMessage message={state.cameraError} />
-    </div>
+      )}
+      {state.status === 'completed' && (
+        <div className='flex flex-col items-center justify-center gap-y-4'>
+          <PhotoEditor>
+            <PhotoStrip borderColor='#000000' filter='none' />
+          </PhotoEditor>
+          <PhotoActions />
+        </div>
+      )}
+      {state.status === 'error' && (
+        <div className="text-center">
+          <p>Something went wrong. Please try again.</p>
+          <button onClick={retry} className="px-5 font-medium py-1.5 mt-4 text-white rounded-md bg-violet-500 hover:bg-violet-600">
+            Retry
+          </button>
+        </div>
+      )}
+      <ErrorMessage />
+    </main>
   );
 };
 

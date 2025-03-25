@@ -1,0 +1,131 @@
+export type FilterType = keyof typeof filterPreset;
+
+export const filterPreset = {
+  none: () => ({}),
+  retroEdge: () => ({
+    brightness: 10,
+    contrast: 30,
+    saturation: -15,
+    noise: 5,
+    sharpen: 20,
+    vignette: 0.4,
+  }),
+  vividGlow: () => ({
+    brightness: 36,
+    contrast: -5,
+    saturation: 10,
+    vibrance: 30,
+    colorize: { color: [105, 176, 152] as [number, number, number], strength: 10 },
+    sharpen: 20,
+    shadows: -10,
+    highlights: 30,
+  }),
+  jarques: () => ({
+    saturation: -35,
+    exposure: 10,
+    contrast: 15,
+    brightness: 20
+  }),
+  hazyDays: () => ({
+    brightness: 20,
+    saturation: -15,
+    vignette: 0.4,
+    exposure: 10
+  }),
+  herMajesty: () => ({
+    brightness: 40,
+    saturation: -10,
+    contrast: 15,
+    exposure: 10,
+    channels: { red: 30, blue: -5 },
+  }),
+  vintage: () => ({
+    brightness: 10,
+    contrast: 30,
+    sepia: 60,
+    noise: 5,
+    vignette: 0.3
+  }),
+  lomo: () => ({
+    brightness: 15,
+    exposure: 15,
+    contrast: 15,
+    vignette: 0.7,
+    channels: { red: 3, green: 5, blue: 7 }
+  }),
+  clarity: () => ({
+    vibrance: 20,
+    contrast: 15,
+    exposure: 15,
+    highlights: 15,
+    shadows: -15,
+    gamma: 1.8
+  }),
+  sinCity: () => ({
+    contrast: 100,
+    exposure: 10,
+    channels: { red: 200, green: 10, blue: 10 },
+    saturation: -100
+  }),
+  sunrise: () => ({
+    exposure: 3.5,
+    saturation: -5,
+    vibrance: 50,
+    sepia: 60,
+    colorize: { color: [255, 170, 0] as [number, number, number], strength: 10 }
+  }),
+  crossProcess: () => ({
+    brightness: 10,
+    contrast: 20,
+    exposure: 7,
+    colorize: { color: [25, 95, 170] as [number, number, number], strength: 15 },
+    channels: { red: 3, blue: 5 }
+  }),
+  orangePeel: () => ({
+    exposure: 10,
+    colorize: { color: [255, 200, 0] as [number, number, number], strength: 5 },
+    contrast: 15
+  }),
+  love: () => ({
+    brightness: 5,
+    exposure: 8,
+    contrast: 4,
+    colorize: { color: [255, 50, 100] as [number, number, number], strength: 5 },
+    vibrance: 50
+  }),
+  grungy: () => ({
+    gamma: 1.5,
+    contrast: 25,
+    brightness: -5,
+    vignette: 0.5,
+    noise: 5
+  }),
+  pinhole: () => ({
+    greyscale: true,
+    contrast: 25,
+    exposure: 10,
+    vignette: 0.6
+  }),
+  oldBoot: () => ({
+    saturation: -20,
+    noise: 20,
+    gamma: 1.1,
+    exposure: 10,
+    contrast: 5,
+    vignette: 0.6
+  }),
+  glowingSun: () => ({
+    brightness: 10,
+    contrast: 20,
+    exposure: 7,
+    colorize: { color: [255, 230, 50] as [number, number, number], strength: 15 },
+    channels: { red: 3, blue: 5 }
+  }),
+  concentrate: () => ({
+    sharpen: 40,
+    saturation: -50,
+    contrast: 10,
+    exposure: 10,
+    gamma: 0.8
+  })
+};

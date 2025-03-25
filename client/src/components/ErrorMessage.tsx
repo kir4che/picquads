@@ -1,9 +1,18 @@
+import { useEffect } from 'react';
 import { useError } from '../hooks/useError';
 
 import ErrorIcon from '../assets/icons/error-close.svg?react';
 
 const ErrorMessage: React.FC = () => {
-  const { errorMessage } = useError();
+  const { errorMessage, setErrorMessage } = useError();
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage, setErrorMessage]);
+
   if (!errorMessage) return null;
 
   return (
