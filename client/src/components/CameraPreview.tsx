@@ -72,7 +72,7 @@ const CameraPreview: React.FC = () => {
         {capturedImage && (
           <img 
             src={capturedImage} 
-            className={!isMobileDevice && facingMode === 'user' ? 'scale-x-[-1]' : ''}
+            className={(!isMobileDevice && facingMode === 'user') || (isMobileDevice && facingMode === 'user') ? 'scale-x-[-1]' : ''}
             alt="已拍攝的照片"
           />
         )}
