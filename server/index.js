@@ -1,14 +1,17 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import QRCode from 'qrcode';
+import nodemailer from 'nodemailer';
 import cors from 'cors';
 import multer from 'multer';
 import { createClient } from '@supabase/supabase-js';
+import { google } from 'googleapis';
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // 添加 JSON 解析中間件
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const storageBucket = process.env.SUPABASE_BUCKET_NAME;
@@ -23,7 +26,7 @@ const upload = multer({
 
 app.get('/', (_, res) => res.send('Express on Vercel.'));
 
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     const file = req.file; // 取得上傳的檔案
     if (!file) return res.status(400).json({ error: 'No file uploaded.' });
@@ -52,6 +55,73 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     res.status(200).json({ url: data.publicUrl, qrCode });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+const OAuth2 = google.auth.OAuth2;
+
+const oauth2Client = new OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  'https://developers.google.com/oauthplayground'
+);
+
+app.post('/api/contact', async (req, res) => {
+  let transporter = null;
+
+  try {
+    const { name, email, content } = req.body;
+
+    if (!name || !email || !content) {
+      return res.status(400).json({ error: 'Please fill in all required fields.' });
+    }
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.REFRESH_TOKEN,
+    });
+
+    const accessToken = await oauth2Client.getAccessToken();
+    if (!accessToken) {
+      return res.status(500).json({  error: 'Failed to get access token.' });
+    }
+
+    // 設定寄信的 SMTP 服務
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: process.env.EMAIL_USER || 'mollydcxxiii@gmail.com',
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        accessToken: accessToken ?? ''
+      }
+    });
+
+    // 設定信件內容
+    const mailOptions = {
+      from: `"${name.trim()}" <${email.trim()}>`,
+      to: process.env.EMAIL_USER || 'mollydcxxiii@gmail.com',
+      subject: 'Picquads - Contact Form Submission',
+      html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p style="white-space: pre-wrap;">${content}</p>
+        <br>
+        <hr>
+        <p><small>This email is automatically sent from the Picquads contact form.</small></p>
+      `,
+      text: `Name: ${name}\nEmail: ${email}\n\n${content}`
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ success: true });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (transporter) transporter.close();
   }
 });
 
