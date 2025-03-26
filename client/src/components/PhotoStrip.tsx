@@ -182,8 +182,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
           const x = dimensions.padding.left + colIndex * (dimensions.photo.width + dimensions.gap.horizontal);
           const y = dimensions.padding.top + rowIndex * (dimensions.photo.height + dimensions.gap.vertical);
 
-          const shouldFlipHorizontally = (!isMobileDevice && imageData.facingMode === 'environment') || 
-                                      (isMobileDevice && imageData.facingMode === 'user');
+          const shouldFlipHorizontally = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
 
           await processPhoto({ ctx, imageData, x, y, shouldFlipHorizontally });
         })

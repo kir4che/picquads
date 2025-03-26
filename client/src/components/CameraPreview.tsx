@@ -39,7 +39,7 @@ const CameraPreview: React.FC = () => {
         {/* 相機拍攝預覽 */}
         {status === 'capturing' && !capturedImage && (
           <>
-            <div className="relative" style={{ transform: !isMobileDevice && facingMode === 'environment' ? 'scaleX(-1)' : 'none' }}>
+            <div className="relative">
               <Camera
                 ref={cameraRef}
                 facingMode={facingMode}
@@ -60,21 +60,19 @@ const CameraPreview: React.FC = () => {
                 </div>
               )}
             </div>
-            {isMobileDevice && (
-              <button 
-                className="absolute top-2 right-2 bg-gray-400 text-white p-1.5 rounded-full hover:opacity-80"
-                onClick={switchCamera}
-              >
-                <ChangeCameraIcon className='w-6 h-6'/>
-              </button>
-            )}
+            <button 
+              className="absolute text-white top-2 right-2 bg-gray-800 opacity-80 p-1.5 rounded-full hover:opacity-65"
+              onClick={switchCamera}
+            >
+              <ChangeCameraIcon className='w-6 h-6'/>
+            </button>
           </>
         )}
         {/* 拍攝照片 */}
         {capturedImage && (
           <img 
             src={capturedImage} 
-            className={!isMobileDevice && facingMode === 'environment' ? 'scale-x-[-1]' : ''}
+            className={!isMobileDevice && facingMode === 'user' ? 'scale-x-[-1]' : ''}
             alt="已拍攝的照片"
           />
         )}
