@@ -2,7 +2,7 @@ import { createContext, useRef, useReducer, useCallback, ReactNode, useMemo, use
 
 import { CameraState, CameraAction, CameraType, CameraContextType } from '../types/camera';
 import { Frame } from '../configs/frame';
-import { useError } from '../hooks/useError';
+import { useAlert } from '../hooks/useAlert';
 
 const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -83,7 +83,7 @@ const CameraContext = createContext<CameraContextType | null>(null);
 
 export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cameraReducer, initialState);
-  const { setErrorMessage } = useError();
+  const { setAlert } = useAlert();
 
   const cameraRef = useRef<CameraType>(null); // 相機
   const videoRef = useRef<HTMLVideoElement | null>(null); // 相機畫面
@@ -160,14 +160,14 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
           dispatch({ type: 'SET_CAMERA_READY', payload: true });
       }, 1000);
       
-      setErrorMessage(null);
+      setAlert(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '無法啟動相機';
+      const errorMessage = err instanceof Error ? err.message : 'Unable to start camera.';
       dispatch({ type: 'SET_ERROR' });
-      setErrorMessage(errorMessage);
+      setAlert(errorMessage, 'error');
       lastActionRef.current = () => initializeCamera(forcefacingMode);
     }
-  }, [tryGetUserMedia, setErrorMessage]);
+  }, [tryGetUserMedia, setAlert]);
 
   // 設定需要拍攝的照片總數
   const setFrame = useCallback((frame: Frame) => {
@@ -190,16 +190,16 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   // 拍照
   const capturePhoto = useCallback(() => {
     if (!cameraRef.current) {
-      const errorMessage = '相機未初始化';
+      const errorMessage = 'Camera not initialized.';
       dispatch({ type: 'SET_ERROR' });
-      setErrorMessage(errorMessage);
+      setAlert(errorMessage, 'error');
       lastActionRef.current = capturePhoto;
       return;
     }
 
     try {
       const photoUrl = cameraRef.current.takePhoto();
-      if (!photoUrl) throw new Error('無法獲取照片 URL'); 
+      if (!photoUrl) throw new Error('Unable to get photo URL.'); 
 
       dispatch({ 
         type: 'CAPTURE_PHOTO', 
@@ -209,14 +209,14 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       stopExistingMediaStream();
-      setErrorMessage(null);
+      setAlert(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '照片拍攝失敗';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to capture photo.';
       dispatch({ type: 'SET_ERROR' });
-      setErrorMessage(errorMessage);
+      setAlert(errorMessage, 'error');
       lastActionRef.current = capturePhoto;
     }
-  }, [stopExistingMediaStream, setErrorMessage]);
+  }, [stopExistingMediaStream, setAlert]);
 
   // 重試上次失敗的操作
   const retry = useCallback(() => {

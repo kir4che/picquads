@@ -1,7 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 
-import { ErrorProvider } from './contexts/ErrorContext'
+import { AlertProvider } from './contexts/AlertContext'
 import { CameraProvider } from './contexts/CameraContext'
 
 import App from './App'
@@ -10,10 +11,12 @@ import './style.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorProvider>
-      <CameraProvider>
-        <App />
-      </CameraProvider>
-    </ErrorProvider>
+    <BrowserRouter>
+      <AlertProvider>
+        <CameraProvider>
+          <App />
+        </CameraProvider>
+      </AlertProvider>
+    </BrowserRouter>
   </StrictMode>,
 )

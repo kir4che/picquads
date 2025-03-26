@@ -56,18 +56,18 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
   );
 
   return (
-    <div role="region" className="flex flex-col items-center gap-y-4" aria-label="照片編輯器">
+    <div role="region" className="flex flex-col items-center gap-y-4" aria-label="Photo editor">
       <div className="flex items-center justify-center w-full mb-2 sm:gap-x-1">
         <PaginationBtn
           icon={<NavArrowLeftIcon className="w-5 h-5" />}
           onClick={handlePrevPage}
           disabled={currentPage === 0}
-          ariaLabel="上一頁濾鏡"
+          ariaLabel="Previous filter"
         />
         <div
           role="listbox"
           className="flex w-full gap-x-2 md:gap-x-3"
-          aria-label="濾鏡選項"
+          aria-label="Filter options"
         >
           {visibleFilters.map((value) => (
             <button
@@ -78,7 +78,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
                   ? 'bg-violet-600 text-white' 
                   : 'bg-gray-100 hover:bg-gray-200 text-black'
               }`}
-              aria-label={`套用 ${value} 濾鏡`}
+              aria-label={`Apply ${value} filter`}
             >
               {value}
             </button>
@@ -88,7 +88,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
           icon={<NavArrowRightIcon className="w-5 h-5" />}
           onClick={handleNextPage}
           disabled={currentPage === totalPages - 1}
-          ariaLabel="下一頁濾鏡"
+          ariaLabel="Next filter"
         />
       </div>
       {cloneElement(children, {
@@ -100,7 +100,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
         value={borderColor} 
         onChange={handleColorChange}
         className="w-20 h-8 cursor-pointer"
-        aria-label="選擇邊框顏色"
+        aria-label="Select border color"
       />
     </div>
   );

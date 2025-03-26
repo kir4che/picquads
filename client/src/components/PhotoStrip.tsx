@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 
 import { FilterType, filterPreset } from '../configs/filter';
-import { useError } from '../hooks/useError';
+import { useAlert } from '../hooks/useAlert';
 import { useCamera } from '../hooks/useCamera';
 import { getFrameConfig, getFrameDimensions } from '../utils/frame';
 import { applyFilter } from '../utils/caman';
@@ -32,7 +32,7 @@ interface RenderPhotoProps {
 }
 
 const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter }) => {
-  const { setErrorMessage } = useError();
+  const { setAlert } = useAlert();
   const { state, canvasRef } = useCamera();
   const { frame, isMobileDevice, capturedImages: images } = state;
 
@@ -77,7 +77,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
     shouldFlipHorizontally
   }: RenderPhotoProps): Promise<void> => {
     if (!dimensions?.photo) {
-      setErrorMessage('無法取得照片尺寸');
+      setAlert('Unable to get photo dimensions.', 'error');
       return;
     }
 
@@ -89,14 +89,14 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
     // 創建臨時的 Canvas 來繪製照片
     const photoCanvas = createTempCanvas(targetWidth, targetHeight);
     if (!photoCanvas) {
-      setErrorMessage('無法創建照片 Canvas');
+      setAlert('Unable to create photo canvas.', 'error');
       return;
     }
 
     // 取得照片的 Canvas Rendering Context 以進行繪圖操作
     const photoCtx = photoCanvas.getContext('2d');
     if (!photoCtx) {
-      setErrorMessage('無法取得照片');
+      setAlert('Unable to get photo.', 'error');
       return;
     }
 
@@ -121,13 +121,13 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
     // 創建臨時的 Canvas 來處理濾鏡
     const filterCanvas = createTempCanvas(targetWidth, targetHeight);
     if (!filterCanvas) {
-      setErrorMessage('無法創建濾鏡 Canvas');
+      setAlert('Unable to create filter canvas.', 'error');
       return;
     }
 
     const filterCtx = filterCanvas.getContext('2d');
     if (!filterCtx) {
-      setErrorMessage('無法取得濾鏡');
+      setAlert('Unable to get filter.', 'error');
       return;
     }
 
@@ -137,10 +137,10 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
       await applyFilter(filterCanvas, filterPreset[filter]()); // 套用濾鏡
       ctx.drawImage(filterCanvas, x, y); // 繪製濾鏡後的照片到主 Canvas
     } catch (err) {
-      setErrorMessage(`應用濾鏡失敗: ${err instanceof Error ? err.message : '未知錯誤'}`);
+      setAlert(`Failed to apply filter: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
       ctx.drawImage(photoCanvas, x, y); // 若濾鏡套用失敗，則繪製未處理的照片到主 Canvas。
     }
-  }, [dimensions?.photo, filter, calculateImageDimensions, setErrorMessage, createTempCanvas]);
+  }, [dimensions?.photo, filter, calculateImageDimensions, setAlert, createTempCanvas]);
 
   // 渲染照片到整個拍貼畫布
   const renderCanvas = useCallback(async () => {
@@ -188,7 +188,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
         })
       );
     } catch (err) {
-      setErrorMessage(`渲染畫布時發生錯誤: ${err instanceof Error ? err.message : '未知錯誤'}`);
+      setAlert(`Failed to render canvas: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
     } finally {
       if (!abortController.signal.aborted) isRenderingRef.current = false;
     }
@@ -197,7 +197,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
       abortController.abort();
       isRenderingRef.current = false;
     };
-  }, [loadedImages, dimensions, frameConfig, isMobileDevice, borderColor, processPhoto, images, canvasRef, setErrorMessage]);
+  }, [loadedImages, dimensions, frameConfig, isMobileDevice, borderColor, processPhoto, images, canvasRef, setAlert]);
 
   useEffect(() => {
     let isMounted = true; // 避免不必要的 re-render
@@ -215,7 +215,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
             new Promise<LoadedImage>((resolve, reject) => {
               const img = new Image();
               img.onload = () => resolve({ img, facingMode: image.facingMode });
-              img.onerror = () => reject(new Error(`圖片載入失敗: ${image.url}`));
+              img.onerror = () => reject(new Error(`Failed to load image: ${image.url}`));
               img.src = image.url;
             })
           )
@@ -223,13 +223,13 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
         
         if (isMounted) setLoadedImages(loaded);
       } catch (err) {
-        setErrorMessage(`圖片載入過程發生錯誤: ${err instanceof Error ? err.message : '未知錯誤'}`);
+        setAlert(`Failed to load images: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
       }
     };
 
     loadImages();
     return () => { isMounted = false; };
-  }, [images, setLoadedImages, setErrorMessage]);
+  }, [images, setLoadedImages, setAlert]);
 
   // 當拍貼畫布及尺寸設定有效，渲染照片到畫布上。
   useEffect(() => {
@@ -246,7 +246,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
 
   return (
     <div className="flex flex-col items-center shadow-md" style={canvasContainerStyle}>
-      <canvas role="img" ref={canvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="拍貼" />
+      <canvas role="img" ref={canvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="Photo strip" />
     </div>
   );
 });

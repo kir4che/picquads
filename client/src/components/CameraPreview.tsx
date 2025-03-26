@@ -8,10 +8,10 @@ import CameraActions from './CameraActions';
 import ChangeCameraIcon from '../assets/icons/change-camera.svg?react';
 
 const CAMERA_ERROR_MESSAGES = {
-  canvas: '無法取得照片',
-  permissionDenied: '請允許使用相機權限',
-  noCameraAccessible: '無法存取相機',
-  switchCamera: '無法切換相機',
+  canvas: 'Unable to capture photo.',
+  permissionDenied: 'Please allow camera permission.',
+  noCameraAccessible: 'Unable to access camera.',
+  switchCamera: 'Unable to switch camera.',
 } as const;
 
 const CAMERA_ASPECT_RATIO = 1335/894; 
@@ -73,7 +73,7 @@ const CameraPreview: React.FC = () => {
           <img 
             src={capturedImage} 
             className={(!isMobileDevice && facingMode === 'user') || (isMobileDevice && facingMode === 'user') ? 'scale-x-[-1]' : ''}
-            alt="已拍攝的照片"
+            alt="Captured photo"
           />
         )}
         {/* 倒數計時 */}
