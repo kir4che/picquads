@@ -6,7 +6,7 @@ const Header: React.FC = () => {
   return (
     <header className="grid items-center grid-cols-3 px-4 py-2 text-xs text-violet-400">
       <div className="justify-self-start">
-        <p>Version 1.0.0</p>
+        <p>Version {import.meta.env.VITE_VERSION}</p>
       </div>
       <div className="flex justify-center">
         {location.pathname !== '/' && <Link to="/">Picquads</Link>}
