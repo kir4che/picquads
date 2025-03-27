@@ -72,7 +72,7 @@ const PhotoActions: React.FC = () => {
           className="py-2 font-medium text-white bg-pink-400 border-2 border-pink-400 rounded-full w-60 hover:bg-pink-500 hover:border-pink-500" 
           onClick={resetCamera}
         >
-          Take New Photos
+          New Take
         </button>
       </div>
     </div>

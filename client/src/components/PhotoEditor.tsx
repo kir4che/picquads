@@ -57,7 +57,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
 
   return (
     <div role="region" className="flex flex-col items-center gap-y-4" aria-label="Photo editor">
-      <div className="flex items-center justify-center w-full mb-2 sm:gap-x-1">
+      <div className="flex items-center justify-center w-full mb-2 gap-x-2">
         <PaginationBtn
           icon={<NavArrowLeftIcon className="w-5 h-5" />}
           onClick={handlePrevPage}
@@ -73,7 +73,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
             <button
               key={value}
               onClick={() => handleFilterChange(value as FilterType)}
-              className={`px-2.5 capitalize py-1 rounded-full text-xs sm:text-sm transition-all flex-shrink-0 snap-center ${
+              className={`px-2.5 capitalize py-1 rounded-full text-sm transition-all flex-shrink-0 snap-center ${
                 filter === value 
                   ? 'bg-violet-600 text-white' 
                   : 'bg-gray-100 hover:bg-gray-200 text-black'

@@ -15,7 +15,7 @@ const Home: React.FC = () => {
       <h1
         role="link"
         onClick={resetCamera}
-        className="text-3xl font-bold mb-8 [text-shadow:_0_2px_8px_rgb(255_255_255_/_0.8)] text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-40% via-violet-300 via-50% to-violet-50 to-80% cursor-pointer"
+        className="text-3xl font-bold mb-6 [text-shadow:_0_2px_8px_rgb(255_255_255_/_0.8)] text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-40% via-violet-300 via-50% to-violet-50 to-80% cursor-pointer"
       >
         PicQuads
       </h1>
