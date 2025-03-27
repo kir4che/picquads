@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+
+dayjs.extend(localizedFormat);
 
 import { FilterType, filterPreset } from '../configs/filter';
+import { dateFormats, timeFormats } from '../configs/datetime';
 import { useAlert } from '../hooks/useAlert';
 import { useCamera } from '../hooks/useCamera';
 import { getFrameConfig, getFrameDimensions } from '../utils/frame';
@@ -9,6 +14,8 @@ import { applyFilter } from '../utils/caman';
 interface PhotoStripProps {
   borderColor: string;
   filter: FilterType;
+  dateFormat: string;
+  timeFormat: string;
 }
 
 interface LoadedImage {
@@ -31,7 +38,7 @@ interface RenderPhotoProps {
   shouldFlipHorizontally: boolean;
 }
 
-const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter }) => {
+const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter, dateFormat, timeFormat }) => {
   const { setAlert } = useAlert();
   const { state, canvasRef } = useCamera();
   const { frame, isMobileDevice, capturedImages: images } = state;
@@ -142,6 +149,41 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
     }
   }, [dimensions?.photo, filter, calculateImageDimensions, setAlert, createTempCanvas]);
 
+  // 渲染日期、時間
+  const renderDateTime = useCallback((ctx: CanvasRenderingContext2D) => {
+    if (!dimensions?.canvas || (dateFormat === 'none' && timeFormat === 'none')) return;
+
+    const now = dayjs();
+    // 選擇格式
+    const selectedDateFormat = dateFormats.find(df => df.id === dateFormat);
+    const selectedTimeFormat = timeFormats.find(tf => tf.id === timeFormat);
+    
+    let dateTimeText = '';
+    
+    if (selectedDateFormat?.format)
+      dateTimeText += now.format(selectedDateFormat.format);
+    
+    if (selectedTimeFormat?.format) {
+      if (dateTimeText) dateTimeText += ' '; // 讓日期與時間之間有間距
+      dateTimeText += now.format(selectedTimeFormat.format);
+    }
+
+    // 若有需要顯示的日期或時間，則繪製到 Canvas。
+    if (dateTimeText && dimensions.datetime) {
+      ctx.font = '40px "digital7"';
+      ctx.fillStyle = '#FFB867';
+      ctx.letterSpacing = '2.5px'
+      ctx.textAlign = dimensions.datetime.align;
+
+      ctx.shadowColor = '#FFD4A480';
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+
+      ctx.fillText(dateTimeText, dimensions.datetime.x, dimensions.datetime.y);
+    }
+  }, [dimensions, dateFormat, timeFormat]);
+
   // 渲染照片到整個拍貼畫布
   const renderCanvas = useCallback(async () => {
     if (!canvasRef.current || !dimensions?.canvas || loadedImages.length === 0 || isRenderingRef.current) return;
@@ -160,6 +202,9 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
       canvasRef.current.height = dimensions.canvas.height;
       ctx.fillStyle = borderColor;
       ctx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
+
+      // 渲染日期和時間
+      renderDateTime(ctx);
 
       // 將照片按拍攝順序排序
       const sortedImages = [...loadedImages].sort((a, b) => {
@@ -197,7 +242,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
       abortController.abort();
       isRenderingRef.current = false;
     };
-  }, [loadedImages, dimensions, frameConfig, isMobileDevice, borderColor, processPhoto, images, canvasRef, setAlert]);
+  }, [loadedImages, dimensions, frameConfig, isMobileDevice, borderColor, processPhoto, images, canvasRef, setAlert, renderDateTime]);
 
   useEffect(() => {
     let isMounted = true; // 避免不必要的 re-render
@@ -237,8 +282,8 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter 
   }, [renderCanvas, dimensions, canvasRef]);
 
   const canvasContainerStyle = useMemo(() => ({
-    width: dimensions?.canvas ? `${dimensions.canvas.width * 0.15}px` : 'auto',
-    height: dimensions?.canvas ? `${dimensions.canvas.height * 0.15}px` : 'auto',
+    width: dimensions?.canvas ? `${dimensions.canvas.width * 0.25}px` : 'auto',
+    height: dimensions?.canvas ? `${dimensions.canvas.height * 0.25}px` : 'auto',
     position: 'relative' as const
   }), [dimensions?.canvas]);
 

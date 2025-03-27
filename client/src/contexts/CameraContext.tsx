@@ -158,7 +158,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(() => {
         if (cameraRef.current && mediaStreamRef.current?.active)
           dispatch({ type: 'SET_CAMERA_READY', payload: true });
-      }, 1000);
+      }, 500);
       
       setAlert(null);
     } catch (err) {

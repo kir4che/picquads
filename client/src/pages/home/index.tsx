@@ -36,7 +36,12 @@ const Home: React.FC = () => {
       {state.status === 'completed' && (
         <div className='flex flex-col items-center justify-center gap-y-4'>
           <PhotoEditor>
-            <PhotoStrip borderColor='#000000' filter='none' />
+            <PhotoStrip
+              borderColor='#000000'
+              filter='none'
+              dateFormat='none'
+              timeFormat='none'
+            />
           </PhotoEditor>
           <PhotoActions />
         </div>

@@ -24,10 +24,15 @@ export interface FrameConfig {
     photo: { width: number; height: number };
     padding: { top: number; bottom: number; left: number; right: number };
     gap: { vertical: number; horizontal: number };
+    datetime?: {
+      x: number;
+      y: number;
+      align: 'left' | 'center' | 'right';
+    };
   };
 }
 
-const SCALE_FACTOR = 8;
+const SCALE_FACTOR = 6;
 
 const toPx = (mm: number) => mm * SCALE_FACTOR * 3.779528; // mm -> px 轉換
 
@@ -49,6 +54,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: 0,
         horizontal: 0
+      },
+      datetime: {
+        x: toPx(50.5-(50.5 - 44) / 2),
+        y: toPx(76 - 4.25) + 24,
+        align: 'right'
       }
     }
   },
@@ -69,6 +79,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: toPx(1.125),
         horizontal: 0
+      },
+      datetime: {
+        x: toPx(50.5-(50.5 - 44) / 2),
+        y: toPx(74.5),
+        align: 'right'
       }
     }
   },
@@ -89,6 +104,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: toPx(1.875),
         horizontal: 0
+      },
+      datetime: {
+        x: toPx(50.5-(50.5 - 44) / 2),
+        y: toPx(152 - 4.25) + 24,
+        align: 'right'
       }
     }
   },
@@ -109,6 +129,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: toPx(2.25),
         horizontal: toPx(2.5)
+      },
+      datetime: {
+        x: toPx(111.47 - 5.5),
+        y: toPx(152 - 6.25) + 24,
+        align: 'right'
       }
     }
   },
@@ -129,6 +154,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: toPx(1.5),
         horizontal: toPx(2.25)
+      },
+      datetime: {
+        x: toPx(97.69 - 6.7),
+        y: toPx(152 - 5) + 24,
+        align: 'right'
       }
     }
   },
@@ -149,6 +179,11 @@ export const frameConfigs: Record<string, FrameConfig> = {
       gap: {
         vertical: toPx(1.25),
         horizontal: toPx(1.875)
+      },
+      datetime: {
+        x: toPx(100.42 - 4.5),
+        y: toPx(152 - 5) + 24,
+        align: 'right'
       }
     }
   },
