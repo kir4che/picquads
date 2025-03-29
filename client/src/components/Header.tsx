@@ -9,7 +9,7 @@ const Header: React.FC = () => {
         <p>Version {import.meta.env.VITE_VERSION}</p>
       </div>
       <div className="flex justify-center">
-        {location.pathname !== '/' && <Link to="/">Picquads</Link>}
+        {location.pathname !== '/' && <Link to="/">PicQuads</Link>}
       </div>
       <div className="flex items-center gap-x-3 justify-self-end">
         <Link to="/contact" aria-label="Contact">

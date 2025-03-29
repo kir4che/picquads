@@ -102,14 +102,14 @@ app.post('/api/contact', async (req, res) => {
     const mailOptions = {
       from: `"${name.trim()}" <${email.trim()}>`,
       to: process.env.EMAIL_USER || 'mollydcxxiii@gmail.com',
-      subject: 'Picquads - Contact Form Submission',
+      subject: 'PicQuads - Contact Form Submission',
       html: `
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p style="white-space: pre-wrap;">${content}</p>
         <br>
         <hr>
-        <p><small>This email is automatically sent from the Picquads contact form.</small></p>
+        <p><small>This email is automatically sent from the PicQuads contact form.</small></p>
       `,
       text: `Name: ${name}\nEmail: ${email}\n\n${content}`
     };
