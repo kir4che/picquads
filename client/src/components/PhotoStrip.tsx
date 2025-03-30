@@ -37,7 +37,7 @@ interface RenderPhotoProps {
   imageData: LoadedImage;
   x: number;
   y: number;
-  shouldFlipHorizontally: boolean;
+  shouldFlipHori: boolean;
 }
 
 const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, dateFormat, timeFormat, customTextConfig }) => {
@@ -80,13 +80,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
   }, []);
 
   // 處理單張照片：縮放、翻轉、應用濾鏡並繪製到主 Canvas。
-  const processPhoto = useCallback(async ({
-    ctx,
-    imageData,
-    x,
-    y,
-    shouldFlipHorizontally
-  }: RenderPhotoProps): Promise<void> => {
+  const processPhoto = useCallback(async ({ ctx, imageData, x, y, shouldFlipHori }: RenderPhotoProps): Promise<void> => {
     if (!dimensions?.photo) {
       setAlert('Unable to get photo dimensions.', 'error');
       return;
@@ -114,7 +108,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
     photoCtx.save(); // 儲存當前初始狀態，以便後續可以恢復。
 
     // 若需要水平翻轉圖片
-    if (shouldFlipHorizontally) {
+    if (shouldFlipHori) {
       photoCtx.translate(targetWidth, 0);
       photoCtx.scale(-1, 1);
     }
@@ -179,20 +173,30 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
   const renderCustomText = useCallback((ctx: CanvasRenderingContext2D) => {
     if (!dimensions?.canvas || !customTextConfig.text || !fontLoaded) return;
 
-    ctx.save();
+    const { text, color, size, font, position } = customTextConfig;
 
-    ctx.font = `${customTextConfig.size}px "${customTextConfig.font}"`;
-    ctx.fillStyle = customTextConfig.color;
-    ctx.textAlign = 'left';
-    ctx.letterSpacing = '2px'
+    // 檢查是否需要更新畫面
+    if (ctx.fillStyle !== color || ctx.font !== `${size}px "${font}"`) {
+      requestAnimationFrame(() => {
+        ctx.save();
+        
+        // 使用 imageSmoothingEnabled 提升渲染品質
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
-    ctx.fillText(
-      customTextConfig.text, 
-      dimensions.padding.left + customTextConfig.position.x, 
-      dimensions.canvas.height - dimensions.padding.top - customTextConfig.position.y
-    );
-
-    ctx.restore();
+        ctx.font = `${size}px "${font}"`;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'left';
+        ctx.letterSpacing = '2px';
+        
+        ctx.fillText(
+          text, 
+          dimensions.padding.left + position.x, 
+          dimensions.canvas.height - dimensions.padding.top - position.y
+        );
+        ctx.restore();
+      });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customTextConfig]);
 
@@ -242,64 +246,92 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
     isRenderingRef.current = true;
     const abortController = new AbortController();
     
-    if (!offscreenCanvasRef.current) offscreenCanvasRef.current = document.createElement('canvas');
-    offscreenCanvasRef.current.width = dimensions.canvas.width;
-    offscreenCanvasRef.current.height = dimensions.canvas.height;
-    
-    const offscreenCtx = offscreenCanvasRef.current.getContext('2d');
-    if (!offscreenCtx) {
-      isRenderingRef.current = false;
-      return;
-    }
-
-    try {
-      offscreenCtx.fillStyle = frameColor;
-      offscreenCtx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
-
-      renderCustomText(offscreenCtx);
-      renderDateTime(offscreenCtx);
-
-      // 將照片按拍攝順序排序
-      const sortedImages = [...loadedImages].sort((a, b) => {
-        const imageA = images.find(img => img.facingMode === a.facingMode);
-        const imageB = images.find(img => img.facingMode === b.facingMode);
-        return (imageA?.timestamp ?? 0) - (imageB?.timestamp ?? 0);
+    // 使用 debounce 避免頻繁渲染
+    const debounceTimeout = setTimeout(async () => {
+      if (!offscreenCanvasRef.current) {
+        offscreenCanvasRef.current = document.createElement('canvas');
+        offscreenCanvasRef.current.width = dimensions.canvas.width;
+        offscreenCanvasRef.current.height = dimensions.canvas.height;
+      }
+      
+      const offscreenCtx = offscreenCanvasRef.current.getContext('2d', {
+        alpha: false,  // 禁用 alpha 以提升效能
+        willReadFrequently: false  // 告知瀏覽器不會頻繁讀取像素
       });
 
-      // 依行列數計算最多可以顯示的照片數量
-      const maxImages = (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0);
-      
-      // 依序繪製照片
-      await Promise.all(
-        sortedImages.slice(0, maxImages).map(async (imageData, i) => {
-          if (abortController.signal.aborted) return;
-          
-          const rowIndex = Math.floor(i / (frameConfig?.gridSize.cols ?? 1));
-          const colIndex = i % (frameConfig?.gridSize.cols ?? 1);
-          
-          const x = dimensions.padding.left + colIndex * (dimensions.photo.width + dimensions.gap.horizontal);
-          const y = dimensions.padding.top + rowIndex * (dimensions.photo.height + dimensions.gap.vertical);
-
-          const shouldFlipHorizontally = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
-
-          await processPhoto({ ctx: offscreenCtx, imageData, x, y, shouldFlipHorizontally });
-        })
-      );
-
-      // 最後，完成所有繪製後，一次性將結果複製到主畫布。
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        canvasRef.current.width = dimensions.canvas.width;
-        canvasRef.current.height = dimensions.canvas.height;
-        ctx.drawImage(offscreenCanvasRef.current, 0, 0);
+      if (!offscreenCtx) {
+        isRenderingRef.current = false;
+        return;
       }
-    } catch (err) {
-      setAlert(`Failed to render canvas: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
-    } finally {
-      if (!abortController.signal.aborted) isRenderingRef.current = false;
-    }
+
+      try {
+        requestAnimationFrame(() => {
+          if (abortController.signal.aborted) return;
+
+          offscreenCtx.clearRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
+          
+          offscreenCtx.fillStyle = frameColor;
+          offscreenCtx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
+
+          offscreenCtx.save();
+          renderCustomText(offscreenCtx);
+          renderDateTime(offscreenCtx);
+          offscreenCtx.restore();
+        });
+
+        // 將照片按拍攝順序排序
+        const sortedImages = [...loadedImages].sort((a, b) => {
+          const imageA = images.find(img => img.facingMode === a.facingMode);
+          const imageB = images.find(img => img.facingMode === b.facingMode);
+          return (imageA?.timestamp ?? 0) - (imageB?.timestamp ?? 0);
+        });
+
+        // 使用 Promise.all 和 requestAnimationFrame 來優化照片渲染
+        await Promise.all(
+          sortedImages.slice(0, (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0))
+            .map(async (imageData, i) => {
+              if (abortController.signal.aborted) return;
+              
+              return new Promise<void>((resolve) => {
+                requestAnimationFrame(async () => {
+                  const rowIndex = Math.floor(i / (frameConfig?.gridSize.cols ?? 1));
+                  const colIndex = i % (frameConfig?.gridSize.cols ?? 1);
+                  
+                  const x = dimensions.padding.left + colIndex * (dimensions.photo.width + dimensions.gap.horizontal);
+                  const y = dimensions.padding.top + rowIndex * (dimensions.photo.height + dimensions.gap.vertical);
+
+                  const shouldFlipHori = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
+
+                  await processPhoto({ ctx: offscreenCtx, imageData, x, y, shouldFlipHori });
+                  resolve();
+                });
+              });
+            })
+        );
+
+        // 最後，完成所有繪製後，一次性將結果複製到主畫布。
+        const ctx = canvasRef?.current?.getContext('2d', {
+          alpha: false,
+          willReadFrequently: false
+        });
+        
+        if (ctx) {
+          requestAnimationFrame(() => {
+            if (abortController.signal.aborted) return;
+            canvasRef.current!.width = dimensions.canvas.width;
+            canvasRef.current!.height = dimensions.canvas.height;
+            ctx.drawImage(offscreenCanvasRef.current!, 0, 0);
+          });
+        }
+      } catch (err) {
+        setAlert(`Failed to render canvas: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+      } finally {
+        if (!abortController.signal.aborted) isRenderingRef.current = false;
+      }
+    }, 16); // 約 60fps 的更新頻率
 
     return () => {
+      clearTimeout(debounceTimeout);
       abortController.abort();
       isRenderingRef.current = false;
     };
