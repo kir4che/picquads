@@ -4,6 +4,7 @@ import { FilterType, filterPreset } from '../../configs/filter';
 import { CustomTextConfig } from '../../types/editor'
 import usePagination from '../../hooks/usePagination';
 
+import PhotoActions from '../../components/PhotoActions';
 import PaginationBtn from '../PaginationBtn';
 import FormField from '../FormField';
 import CustomText from './CustomText';
@@ -75,15 +76,15 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
   );
 
   return (
-    <div className="flex flex-col items-center gap-y-4" aria-label="Photo editor">
-      <div className="flex items-center justify-center w-full gap-x-2">
+    <div className="flex flex-col items-center gap-y-2 md:gap-y-4" aria-label="Photo editor">
+      <div className="flex items-center justify-center w-full mb-4 gap-x-2">
         <PaginationBtn
           icon={<NavArrowLeftIcon className="w-5 h-5" />}
           onClick={handlePrevPage}
           disabled={currentPage === 0}
           ariaLabel="Previous filter"
         />
-        <div className="flex w-full gap-x-2 md:gap-x-3" aria-label="Filter options">
+        <div className="flex w-full gap-x-2" aria-label="Filter options">
           {visibleFilters.map((value) => (
             <button
               key={value}
@@ -106,8 +107,9 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
           ariaLabel="Next filter"
         />
       </div>
-      <div className='flex flex-col items-start justify-center gap-8 md:flex-row'>
+      <div className='flex flex-col items-start justify-center gap-x-8 gap-y-3 md:flex-row'>
         <div className='w-full space-y-4'>
+          <PhotoActions />
           <CustomText customTextConfig={customTextConfig} setCustomTextConfig={setCustomTextConfig} />
           <DateTimeSelect 
             dateFormat={dateFormat} 
@@ -116,7 +118,7 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
             setTimeFormat={setTimeFormat} 
           />
         </div>
-        <div className='flex flex-col items-center gap-y-4'>
+        <div className='flex flex-col items-center gap-y-3'>
           {cloneElement(children, {
             frameColor,
             filter,

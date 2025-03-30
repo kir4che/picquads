@@ -5,7 +5,6 @@ import { getFrameList } from '../../utils/frame';
 import CameraPreview from '../../components/CameraPreview';
 import PhotoEditor from '../../components/PhotoEditor';
 import PhotoStrip from '../../components/PhotoStrip';
-import PhotoActions from '../../components/PhotoActions';
 
 const Home: React.FC = () => {
   const { state, setFrame, retry, resetCamera } = useCamera();
@@ -13,9 +12,8 @@ const Home: React.FC = () => {
   return (
     <main>
       <h1
-        role="link"
         onClick={resetCamera}
-        className="text-3xl font-bold mb-6 [text-shadow:_0_2px_8px_rgb(255_255_255_/_0.8)] text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-40% via-violet-300 via-50% to-violet-50 to-80% cursor-pointer"
+        className="text-3xl font-bold mb-8 [text-shadow:_0_2px_8px_rgb(255_255_255_/_0.8)] text-center text-transparent bg-gradient-to-r bg-clip-text from-violet-600 from-40% via-violet-300 via-50% to-violet-50 to-80% cursor-pointer"
       >
         PicQuads
       </h1>
@@ -34,16 +32,22 @@ const Home: React.FC = () => {
         </div>
       )}
       {state.status === 'completed' && (
-        <div className='flex flex-col items-center justify-center gap-y-4'>
+        <div className='flex flex-col items-center'>
           <PhotoEditor>
             <PhotoStrip
-              borderColor='#000000'
+              frameColor='#000000'
               filter='none'
-              dateFormat='none'
-              timeFormat='none'
+              dateFormat=''
+              timeFormat=''
+              customTextConfig={{
+                text: '',
+                font: 'PlayfairDisplay',
+                position: { x: 0, y: 0 },
+                color: '#FFFFFF',
+                size: 48
+              }}
             />
           </PhotoEditor>
-          <PhotoActions />
         </div>
       )}
       {state.status === 'error' && (

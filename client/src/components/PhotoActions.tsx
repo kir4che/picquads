@@ -53,27 +53,27 @@ const PhotoActions: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center gap-y-4">
+    <div className="flex flex-col justify-center gap-y-3">
       {/* <QRCode qrCode={qrCode} link={link} /> */}
-      <div className="flex flex-col w-full gap-4">
+      <div className="flex items-center text-sm gap-x-2">
         <button 
-          className="py-2 font-medium text-white border-2 rounded-full w-60 bg-violet-500 border-violet-500 hover:bg-violet-600 hover:border-violet-600" 
+          className="py-1.5 w-2/5 font-medium text-white bg-pink-400 border-2 border-pink-400 rounded-full hover:bg-pink-500 hover:border-pink-500" 
+          onClick={resetCamera}
+        >
+          ReTake
+        </button>
+        <button 
+          className="py-1.5 w-3/5 font-medium text-white border-2 rounded-full bg-violet-500 border-violet-500 hover:bg-violet-600 hover:border-violet-600" 
           onClick={handleDownload}
         >
           Download
         </button>
         {/* <button
-          className="py-2 font-medium bg-white border-2 rounded-full w-60 text-violet-600 border-violet-600 hover:bg-violet-600 hover:text-white"
+          className="py-2 font-medium bg-white border-2 rounded-full text-violet-600 border-violet-600 hover:bg-violet-600 hover:text-white"
           onClick={handleGenerateUrlAndQRCode}
         >
           Download via QR Code
         </button> */}
-        <button 
-          className="py-2 font-medium text-white bg-pink-400 border-2 border-pink-400 rounded-full w-60 hover:bg-pink-500 hover:border-pink-500" 
-          onClick={resetCamera}
-        >
-          New Take
-        </button>
       </div>
     </div>
   );
