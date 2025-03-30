@@ -47,6 +47,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
 
   const isRenderingRef = useRef(false); // 用於避免多次執行 renderCanvas
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null); // 用於在記憶體中預先處理照片
+  const editorCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [loadedImages, setLoadedImages] = useState<LoadedImage[]>([]); // 儲存已載入的照片
   const [fontLoaded, setFontLoaded] = useState<boolean>(false); // 追蹤字體是否載入完成
@@ -241,7 +242,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
 
   // 渲染照片到整個拍貼畫布
   const renderCanvas = useCallback(async () => {
-    if (!canvasRef.current || !dimensions?.canvas || loadedImages.length === 0 || isRenderingRef.current) return;
+    if (!canvasRef.current || !editorCanvasRef.current || !dimensions?.canvas || loadedImages.length === 0 || isRenderingRef.current) return;
 
     isRenderingRef.current = true;
     const abortController = new AbortController();
@@ -265,30 +266,9 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
       }
 
       try {
-        requestAnimationFrame(() => {
-          if (abortController.signal.aborted) return;
-
-          offscreenCtx.clearRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
-          
-          offscreenCtx.fillStyle = frameColor;
-          offscreenCtx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
-
-          offscreenCtx.save();
-          renderCustomText(offscreenCtx);
-          renderDateTime(offscreenCtx);
-          offscreenCtx.restore();
-        });
-
-        // 將照片按拍攝順序排序
-        const sortedImages = [...loadedImages].sort((a, b) => {
-          const imageA = images.find(img => img.facingMode === a.facingMode);
-          const imageB = images.find(img => img.facingMode === b.facingMode);
-          return (imageA?.timestamp ?? 0) - (imageB?.timestamp ?? 0);
-        });
-
-        // 使用 Promise.all 和 requestAnimationFrame 來優化照片渲染
+        // 繪製照片
         await Promise.all(
-          sortedImages.slice(0, (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0))
+          loadedImages.slice(0, (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0))
             .map(async (imageData, i) => {
               if (abortController.signal.aborted) return;
               
@@ -309,7 +289,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
             })
         );
 
-        // 最後，完成所有繪製後，一次性將結果複製到主畫布。
+        // 在照片繪製完成後，將結果複製到主畫布
         const ctx = canvasRef?.current?.getContext('2d', {
           alpha: false,
           willReadFrequently: false
@@ -321,6 +301,17 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
             canvasRef.current!.width = dimensions.canvas.width;
             canvasRef.current!.height = dimensions.canvas.height;
             ctx.drawImage(offscreenCanvasRef.current!, 0, 0);
+          });
+        }
+
+        const editorCtx = editorCanvasRef.current?.getContext('2d');
+        if (editorCtx && editorCanvasRef.current !== null) {
+          requestAnimationFrame(() => {
+            if (abortController.signal.aborted) return;
+            editorCanvasRef.current!.width = dimensions.canvas.width;
+            editorCanvasRef.current!.height = dimensions.canvas.height;
+            renderCustomText(editorCtx);
+            renderDateTime(editorCtx);
           });
         }
       } catch (err) {
@@ -336,7 +327,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
       isRenderingRef.current = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasRef, images, loadedImages, dimensions, frameConfig, frameColor, processPhoto, renderCustomText, renderDateTime]);
+  }, [canvasRef, editorCanvasRef, images, loadedImages, dimensions, frameConfig, frameColor, processPhoto, renderCustomText, renderDateTime]);
 
   useEffect(() => {
     let isMounted = true; // 避免在組件 unmounted 執行 setState
@@ -395,6 +386,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
   return (
     <div className="flex flex-col items-center shadow-md" style={canvasContainerStyle}>
       <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="Photo strip" />
+      <canvas ref={editorCanvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="Editor overlay" style={{ zIndex: 1 }} />
     </div>
   );
 });
