@@ -48,6 +48,7 @@ const CustomText: React.FC<CustomTextProps> = ({ customTextConfig, setCustomText
             onClick={() => setIsTextSettingsExpanded((prev) => !prev)}
             className="flex items-center justify-between w-full py-2 text-xs text-gray-600 border-b border-violet-700 focus:outline-none"
             aria-expanded={isTextSettingsExpanded}
+            aria-label='Custom text settings'
           >
             Text Settings
             <ChevronDownIcon 

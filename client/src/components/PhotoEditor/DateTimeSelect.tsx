@@ -43,7 +43,7 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({ dateFormat, setDateForm
           onChange={handleCheckboxChange}
           className="w-3.5 h-3.5"
           aria-checked={showDateTime}
-          aria-label="Show Date & Time"
+          aria-label="Show date & time"
         />
         Show Date & Time
       </label>
@@ -54,14 +54,14 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({ dateFormat, setDateForm
             onChange={handleSelectChange(setDateFormat)}
             options={dateFormats}
             disabled={!showDateTime}
-            aria-label="Select Date Format"
+            aria-label="Select date format"
           />
           <Select
             value={timeFormat}
             onChange={handleSelectChange(setTimeFormat)}
             options={timeFormats}
             disabled={!showDateTime}
-            aria-label="Select Time Format"
+            aria-label="Select time format"
           />
         </div>
       )}

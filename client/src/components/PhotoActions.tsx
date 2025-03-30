@@ -59,18 +59,21 @@ const PhotoActions: React.FC = () => {
         <button 
           className="py-1.5 w-2/5 font-medium text-white bg-pink-400 border-2 border-pink-400 rounded-full hover:bg-pink-500 hover:border-pink-500" 
           onClick={resetCamera}
+          aria-label="Retake the photo booth"
         >
           ReTake
         </button>
         <button 
           className="py-1.5 w-3/5 font-medium text-white border-2 rounded-full bg-violet-500 border-violet-500 hover:bg-violet-600 hover:border-violet-600" 
           onClick={handleDownload}
+          aria-label="Download the photo booth"
         >
           Download
         </button>
         {/* <button
           className="py-2 font-medium bg-white border-2 rounded-full text-violet-600 border-violet-600 hover:bg-violet-600 hover:text-white"
           onClick={handleGenerateUrlAndQRCode}
+          aria-label="Download the photo booth via QR code"
         >
           Download via QR Code
         </button> */}

@@ -53,7 +53,6 @@ const PrivacyPolicy: React.FC = () => {
               <Link 
                 to="mailto:mollydcxxiii@gmail.com" 
                 className="ml-2 font-medium underline rounded text-violet-700 hover:text-violet-800 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-                tabIndex={0}
                 aria-label="Send email to mollydcxxiii@gmail.com"
               >
                 mollydcxxiii@gmail.com

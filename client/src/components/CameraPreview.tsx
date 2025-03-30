@@ -31,6 +31,7 @@ const CameraPreview: React.FC = () => {
             <button
               className="px-6 py-2 text-white rounded-full bg-violet-400 hover:bg-violet-500 focus:ring-2 focus:ring-violet-500"
               onClick={openCamera}
+              aria-label="Open camera"
             >
               Open Camera
             </button>
@@ -39,7 +40,7 @@ const CameraPreview: React.FC = () => {
         {/* 相機拍攝預覽 */}
         {status === 'capturing' && !capturedImage && (
           <>
-            <div className="relative">
+            <div className="relative" aria-label="Camera preview">
               <Camera
                 ref={cameraRef}
                 facingMode={facingMode}
@@ -63,6 +64,7 @@ const CameraPreview: React.FC = () => {
             <button 
               className="absolute text-white top-2 right-2 bg-gray-800 opacity-80 p-1.5 rounded-full hover:opacity-65"
               onClick={switchCamera}
+              aria-label="Switch camera"
             >
               <ChangeCameraIcon className='w-6 h-6'/>
             </button>

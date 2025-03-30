@@ -35,7 +35,6 @@ const Alert: React.FC = () => {
 
   return (
     <div 
-      role="alert"
       className={`absolute flex items-center gap-2 px-4 py-3 -translate-x-1/2 border rounded top-4 left-1/2 min-w-2/3 sm:min-w-80 w-fit ${styles.background} ${styles.border} ${styles.text}`}
     >
       <Icon className="w-5 h-5" />

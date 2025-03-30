@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 import { useAlert } from '../../hooks/useAlert';
+
 import FormField from '../../components/FormField';
 
 // 定義表單驗證規則
@@ -76,12 +77,14 @@ const Contact: React.FC = () => {
           rows={5}
           required
           error={errors.content?.message}
+          className="focus:ring-1 focus:ring-violet-400"
           {...register('content')}
         />
         <button
           type="submit"
           disabled={isSubmitting}
           className="w-full px-6 py-3 mt-8 font-semibold text-white transition duration-200 ease-in-out rounded-full shadow-lg bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-60"
+          aria-label='Send message'
         >
           {isSubmitting ? 'Sending...' : 'Send'}
         </button>

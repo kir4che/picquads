@@ -28,6 +28,7 @@ const CameraActions: React.FC = () => {
         <button 
           className="px-3.5 py-1.5 bg-white border-2 rounded-full text-violet-500 border-violet-500 hover:bg-violet-500 hover:text-white"
           onClick={retakePhoto}
+          aria-label="Retake photo"
         >
           Retake
         </button>
@@ -39,6 +40,7 @@ const CameraActions: React.FC = () => {
               : "border-pink-400 bg-pink-400 hover:bg-pink-500 hover:border-pink-500"}
           `}
           onClick={capturedImages.length < frame.totalCaptures ? continueCapture : completeCapture}
+          aria-label={capturedImages.length < frame.totalCaptures ? "Continue capturing" : "Complete capture"}
         >
           {capturedImages.length < frame.totalCaptures ? "Continue" : "Complete"}
         </button>
@@ -63,6 +65,7 @@ const CameraActions: React.FC = () => {
               : 'bg-white text-violet-800 shadow-[0_0_2px_1.5px_white]'
           }`}
           onClick={() => setSelectedDuration(duration)}
+          aria-label={`${duration} seconds countdown`}
         >
           {duration}s
         </button>
@@ -73,6 +76,7 @@ const CameraActions: React.FC = () => {
         className='flex items-center justify-center ml-auto bg-white border rounded-full border-violet-500 text-violet-500 hover:bg-violet-500 hover:text-white w-9 h-9 disabled:bg-gray-400 disabled:text-white disabled:border-gray-400'
         onClick={handleStartCapture}
         disabled={!state.isCameraReady}
+        aria-label="Capture photo"
       >
         <CameraIcon className='w-6 h-6' />
       </button>
