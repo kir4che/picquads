@@ -1,8 +1,64 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'digital7';
-  src: url('./assets/fonts/digital-7.ttf') format('truetype');
+  font-family: 'ChenYuluoyan';
+  src: url('./assets/fonts/ChenYuluoyan.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DigitalDream';
+  src: url('./assets/fonts/digital-dream.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GenRyuMin2';
+  src: url('./assets/fonts/GenRyuMin2.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'KingSans';
+  src: url('./assets/fonts/KingSans.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Naikai';
+  src: url('./assets/fonts/Naikai.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'PlayfairDisplay';
+  src: url('./assets/fonts/PlayfairDisplay.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Singlong';
+  src: url('./assets/fonts/Singlong.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SourceHanSerifTC';
+  src: url('./assets/fonts/SourceHanSerifTC.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Spectral';
+  src: url('./assets/fonts/Spectral.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -30,6 +86,10 @@
   --color-violet-900: #52428A;
 }
 
+body {
+  @apply tracking-wide;
+}
+
 #root {
   @apply flex flex-col min-h-screen bg-gradient-to-br from-violet-50 from-20% via-violet-100 via-50% to-white to-120%;
 }
@@ -38,10 +98,26 @@ main {
   @apply flex-1 w-full py-4;
 }
 
-button {
+a {
+  @apply hover:underline;
+}
+
+input[type="color"], button, select {
   @apply cursor-pointer disabled:cursor-not-allowed;
 }
 
-a {
-  @apply hover:underline;
+input:not(input[type="color"]), select, textarea {
+  @apply bg-white border rounded-md focus:outline-none;
+}
+
+input[type="color"]::-moz-color-swatch {
+  @apply rounded-md border-violet-300;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  @apply rounded border-violet-300;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  @apply p-0 rounded-none;
 }

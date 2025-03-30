@@ -6,16 +6,18 @@ dayjs.extend(localizedFormat);
 
 import { FilterType, filterPreset } from '../configs/filter';
 import { dateFormats, timeFormats } from '../configs/datetime';
+import { CustomTextConfig } from '../types/editor'
 import { useAlert } from '../hooks/useAlert';
 import { useCamera } from '../hooks/useCamera';
 import { getFrameConfig, getFrameDimensions } from '../utils/frame';
 import { applyFilter } from '../utils/caman';
 
 interface PhotoStripProps {
-  borderColor: string;
+  frameColor: string;
   filter: FilterType;
   dateFormat: string;
   timeFormat: string;
+  customTextConfig: CustomTextConfig;
 }
 
 interface LoadedImage {
@@ -38,14 +40,16 @@ interface RenderPhotoProps {
   shouldFlipHorizontally: boolean;
 }
 
-const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter, dateFormat, timeFormat }) => {
+const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, dateFormat, timeFormat, customTextConfig }) => {
   const { setAlert } = useAlert();
   const { state, canvasRef } = useCamera();
   const { frame, isMobileDevice, capturedImages: images } = state;
 
-  const isRenderingRef = useRef(false); // 避免不必要的 re-render
+  const isRenderingRef = useRef(false); // 用於避免多次執行 renderCanvas
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null); // 用於在記憶體中預先處理照片
 
   const [loadedImages, setLoadedImages] = useState<LoadedImage[]>([]); // 儲存已載入的照片
+  const [fontLoaded, setFontLoaded] = useState<boolean>(false); // 追蹤字體是否載入完成
 
   // 取得邊框的設定及尺寸
   const frameConfig = useMemo(() => getFrameConfig(frame.id), [frame.id]);
@@ -149,31 +153,75 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
     }
   }, [dimensions?.photo, filter, calculateImageDimensions, setAlert, createTempCanvas]);
 
+  // 字體載入
+  useEffect(() => {
+    const loadFont = async () => {
+      try {
+        // 同時載入日期與時間的 DigitalDream 字體和 custom text 的字體
+        await Promise.all([
+          document.fonts.load('24px "DigitalDream"'),
+          document.fonts.load(`${customTextConfig.size}px "${customTextConfig.font}"`)
+        ]);
+        setFontLoaded(true);
+        // 強制重新渲染，確保有正確載入。
+        if (canvasRef.current && dimensions) requestAnimationFrame(() => renderCanvas());
+      } catch (err) {
+        setAlert(`Failed to load font: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+        setFontLoaded(false);
+      }
+    };
+
+    loadFont();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customTextConfig.font]);
+
+  // 渲染自定義文字
+  const renderCustomText = useCallback((ctx: CanvasRenderingContext2D) => {
+    if (!dimensions?.canvas || !customTextConfig.text || !fontLoaded) return;
+
+    ctx.save();
+
+    ctx.font = `${customTextConfig.size}px "${customTextConfig.font}"`;
+    ctx.fillStyle = customTextConfig.color;
+    ctx.textAlign = 'left';
+    ctx.letterSpacing = '2px'
+
+    ctx.fillText(
+      customTextConfig.text, 
+      dimensions.padding.left + customTextConfig.position.x, 
+      dimensions.canvas.height - dimensions.padding.top - customTextConfig.position.y
+    );
+
+    ctx.restore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customTextConfig]);
+
   // 渲染日期、時間
   const renderDateTime = useCallback((ctx: CanvasRenderingContext2D) => {
-    if (!dimensions?.canvas || (dateFormat === 'none' && timeFormat === 'none')) return;
+    if (!dimensions?.canvas || !fontLoaded) return;
 
     const now = dayjs();
-    // 選擇格式
     const selectedDateFormat = dateFormats.find(df => df.id === dateFormat);
     const selectedTimeFormat = timeFormats.find(tf => tf.id === timeFormat);
     
     let dateTimeText = '';
     
-    if (selectedDateFormat?.format)
+    if (selectedDateFormat?.format && dateFormat !== '')
       dateTimeText += now.format(selectedDateFormat.format);
     
-    if (selectedTimeFormat?.format) {
-      if (dateTimeText) dateTimeText += ' '; // 讓日期與時間之間有間距
+    if (selectedTimeFormat?.format && timeFormat !== '') {
+      if (dateTimeText) dateTimeText += ' ';
       dateTimeText += now.format(selectedTimeFormat.format);
     }
 
-    // 若有需要顯示的日期或時間，則繪製到 Canvas。
     if (dateTimeText && dimensions.datetime) {
-      ctx.font = '40px "digital7"';
-      ctx.fillStyle = '#FFB867';
-      ctx.letterSpacing = '2.5px'
+      ctx.save();
+
+      ctx.textBaseline = 'middle';
       ctx.textAlign = dimensions.datetime.align;
+      ctx.font = '24px "DigitalDream"';
+      ctx.fillStyle = '#FFB867';
+      ctx.letterSpacing = '2px';
 
       ctx.shadowColor = '#FFD4A480';
       ctx.shadowBlur = 2;
@@ -181,8 +229,11 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
       ctx.shadowOffsetY = 1;
 
       ctx.fillText(dateTimeText, dimensions.datetime.x, dimensions.datetime.y);
+      
+      ctx.restore();
     }
-  }, [dimensions, dateFormat, timeFormat]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFormat, timeFormat]);
 
   // 渲染照片到整個拍貼畫布
   const renderCanvas = useCallback(async () => {
@@ -190,21 +241,23 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
 
     isRenderingRef.current = true;
     const abortController = new AbortController();
-    const ctx = canvasRef.current.getContext('2d');
     
-    if (!ctx) {
+    if (!offscreenCanvasRef.current) offscreenCanvasRef.current = document.createElement('canvas');
+    offscreenCanvasRef.current.width = dimensions.canvas.width;
+    offscreenCanvasRef.current.height = dimensions.canvas.height;
+    
+    const offscreenCtx = offscreenCanvasRef.current.getContext('2d');
+    if (!offscreenCtx) {
       isRenderingRef.current = false;
       return;
     }
 
     try {
-      canvasRef.current.width = dimensions.canvas.width;
-      canvasRef.current.height = dimensions.canvas.height;
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
+      offscreenCtx.fillStyle = frameColor;
+      offscreenCtx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
 
-      // 渲染日期和時間
-      renderDateTime(ctx);
+      renderCustomText(offscreenCtx);
+      renderDateTime(offscreenCtx);
 
       // 將照片按拍攝順序排序
       const sortedImages = [...loadedImages].sort((a, b) => {
@@ -229,9 +282,17 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
 
           const shouldFlipHorizontally = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
 
-          await processPhoto({ ctx, imageData, x, y, shouldFlipHorizontally });
+          await processPhoto({ ctx: offscreenCtx, imageData, x, y, shouldFlipHorizontally });
         })
       );
+
+      // 最後，完成所有繪製後，一次性將結果複製到主畫布。
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        canvasRef.current.width = dimensions.canvas.width;
+        canvasRef.current.height = dimensions.canvas.height;
+        ctx.drawImage(offscreenCanvasRef.current, 0, 0);
+      }
     } catch (err) {
       setAlert(`Failed to render canvas: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
     } finally {
@@ -242,10 +303,11 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
       abortController.abort();
       isRenderingRef.current = false;
     };
-  }, [loadedImages, dimensions, frameConfig, isMobileDevice, borderColor, processPhoto, images, canvasRef, setAlert, renderDateTime]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasRef, images, loadedImages, dimensions, frameConfig, frameColor, processPhoto, renderCustomText, renderDateTime]);
 
   useEffect(() => {
-    let isMounted = true; // 避免不必要的 re-render
+    let isMounted = true; // 避免在組件 unmounted 執行 setState
     
     const loadImages = async () => {
       if (images.length === 0) { // 若沒有照片，則清空已加載的照片。
@@ -254,7 +316,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
       }
 
       try {
-        // 同時載入所有照片
+        // 並行載入所有照片
         const loaded = await Promise.all(
           images.map((image) => 
             new Promise<LoadedImage>((resolve, reject) => {
@@ -266,6 +328,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
           )
         );
         
+        // 確保組件 mounted 才更新狀態，避免非同步更新。
         if (isMounted) setLoadedImages(loaded);
       } catch (err) {
         setAlert(`Failed to load images: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
@@ -274,12 +337,20 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
 
     loadImages();
     return () => { isMounted = false; };
-  }, [images, setLoadedImages, setAlert]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images, setLoadedImages]);
 
   // 當拍貼畫布及尺寸設定有效，渲染照片到畫布上。
   useEffect(() => {
-    if (canvasRef.current && dimensions) renderCanvas();
-  }, [renderCanvas, dimensions, canvasRef]);
+    if (!canvasRef.current || !dimensions || !fontLoaded) return;
+
+    renderCanvas(); // 更新畫布
+
+    return () => {
+      if (isRenderingRef.current) isRenderingRef.current = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasRef, fontLoaded, customTextConfig, dateFormat, timeFormat, renderCanvas]);
 
   const canvasContainerStyle = useMemo(() => ({
     width: dimensions?.canvas ? `${dimensions.canvas.width * 0.25}px` : 'auto',
@@ -291,7 +362,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ borderColor, filter,
 
   return (
     <div className="flex flex-col items-center shadow-md" style={canvasContainerStyle}>
-      <canvas role="img" ref={canvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="Photo strip" />
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" aria-label="Photo strip" />
     </div>
   );
 });
