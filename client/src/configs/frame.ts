@@ -82,7 +82,7 @@ export const frameConfigs: Record<string, FrameConfig> = {
       },
       datetime: {
         x: toPx(50.5-(50.5 - 44) / 2),
-        y: toPx(74.5),
+        y: toPx(73.6),
         align: 'right'
       }
     }

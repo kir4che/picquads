@@ -175,31 +175,24 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
     if (!dimensions?.canvas || !customTextConfig.text || !fontLoaded) return;
 
     const { text, color, size, font, position } = customTextConfig;
+    
+    ctx.save();
+    
+    // 使用 imageSmoothingEnabled 提升渲染品質
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
-    // 檢查是否需要更新畫面
-    if (ctx.fillStyle !== color || ctx.font !== `${size}px "${font}"`) {
-      requestAnimationFrame(() => {
-        ctx.save();
-        
-        // 使用 imageSmoothingEnabled 提升渲染品質
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+    ctx.font = `${size}px "${font}"`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.letterSpacing = '3px';
 
-        ctx.font = `${size}px "${font}"`;
-        ctx.fillStyle = color;
-        ctx.textAlign = 'left';
-        ctx.letterSpacing = '2px';
-        
-        ctx.fillText(
-          text, 
-          dimensions.padding.left + position.x, 
-          dimensions.canvas.height - dimensions.padding.top - position.y
-        );
-        ctx.restore();
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customTextConfig]);
+
+    ctx.fillText(text, dimensions.padding.left + position.x, dimensions.canvas.height - dimensions.padding.top - position.y);
+
+    ctx.restore();
+  }, [dimensions, customTextConfig, fontLoaded]);
 
   // 渲染日期、時間
   const renderDateTime = useCallback((ctx: CanvasRenderingContext2D) => {
