@@ -242,7 +242,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
 
   // 渲染照片到整個拍貼畫布
   const renderCanvas = useCallback(async () => {
-    if (!canvasRef.current || !editorCanvasRef.current || !dimensions?.canvas || loadedImages.length === 0 || isRenderingRef.current) return;
+    if (!canvasRef.current || !editorCanvasRef.current || !dimensions?.canvas || isRenderingRef.current) return;
 
     isRenderingRef.current = true;
     const abortController = new AbortController();
@@ -266,28 +266,34 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
       }
 
       try {
-        // 繪製照片
-        await Promise.all(
-          loadedImages.slice(0, (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0))
-            .map(async (imageData, i) => {
-              if (abortController.signal.aborted) return;
-              
-              return new Promise<void>((resolve) => {
-                requestAnimationFrame(async () => {
-                  const rowIndex = Math.floor(i / (frameConfig?.gridSize.cols ?? 1));
-                  const colIndex = i % (frameConfig?.gridSize.cols ?? 1);
-                  
-                  const x = dimensions.padding.left + colIndex * (dimensions.photo.width + dimensions.gap.horizontal);
-                  const y = dimensions.padding.top + rowIndex * (dimensions.photo.height + dimensions.gap.vertical);
+        // 先填充拍貼邊框顏色
+        offscreenCtx.fillStyle = frameColor;
+        offscreenCtx.fillRect(0, 0, dimensions.canvas.width, dimensions.canvas.height);
 
-                  const shouldFlipHori = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
+        // 只有在有照片時才繪製照片
+        if (loadedImages.length > 0) {
+          await Promise.all(
+            loadedImages.slice(0, (frameConfig?.gridSize.rows ?? 0) * (frameConfig?.gridSize.cols ?? 0))
+              .map(async (imageData, i) => {
+                if (abortController.signal.aborted) return;
+                
+                return new Promise<void>((resolve) => {
+                  requestAnimationFrame(async () => {
+                    const rowIndex = Math.floor(i / (frameConfig?.gridSize.cols ?? 1));
+                    const colIndex = i % (frameConfig?.gridSize.cols ?? 1);
+                    
+                    const x = dimensions.padding.left + colIndex * (dimensions.photo.width + dimensions.gap.horizontal);
+                    const y = dimensions.padding.top + rowIndex * (dimensions.photo.height + dimensions.gap.vertical);
 
-                  await processPhoto({ ctx: offscreenCtx, imageData, x, y, shouldFlipHori });
-                  resolve();
+                    const shouldFlipHori = (!isMobileDevice && imageData.facingMode === 'user') || (isMobileDevice && imageData.facingMode === 'user');
+
+                    await processPhoto({ ctx: offscreenCtx, imageData, x, y, shouldFlipHori });
+                    resolve();
+                  });
                 });
-              });
-            })
-        );
+              })
+          );
+        }
 
         // 在照片繪製完成後，將結果複製到主畫布
         const ctx = canvasRef?.current?.getContext('2d', {
@@ -373,7 +379,7 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, 
       if (isRenderingRef.current) isRenderingRef.current = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasRef, fontLoaded, customTextConfig, dateFormat, timeFormat, renderCanvas]);
+  }, [canvasRef, fontLoaded, customTextConfig, dateFormat, timeFormat, frameColor, renderCanvas]);
 
   const canvasContainerStyle = useMemo(() => ({
     width: dimensions?.canvas ? `${dimensions.canvas.width * 0.25}px` : 'auto',
