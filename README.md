@@ -1,13 +1,15 @@
 # PicQuads
 
-PicQuads is a online photo booth website that allows users to take photos using web camera, choose from different frames, apply filter effects and frame colors, and ultimately create a beautiful photo booth.
+PicQuads is an online photo booth website that allows users to capture photos on mobile or desktop, choose from various frame layouts, customize frame colors, and apply filter effects to create a personalized and beautiful photo strip.
 
 ## Features
 
-- **Multiple Frames**: Choose from different frames (single, double, triple, etc.).
-- **Device Support**: Capture photos on both mobile and desktop.
-- **Frame Color & Photo Filters** Customize the frame color and apply various photo filters.
-- **Download**: Download the created photo booth image.
+- **Multiple Frames**: Choose from various frames layouts such as single, double, triple, etc.
+
+
+- **Device Support**: Capture photos on mobile or desktop.
+- **Frame Color & Photo Filters** Customize frame colors and apply various photo filters.
+- **Download**: Download the created photo strip image.
 
 ## Usage
 
