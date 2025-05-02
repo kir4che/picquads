@@ -32,7 +32,7 @@ const Contact: React.FC = () => {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/contact`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
