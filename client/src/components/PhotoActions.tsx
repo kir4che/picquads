@@ -5,7 +5,7 @@ import { useCamera } from '../hooks/useCamera';
 // import QRCode from './QRCode';
 
 const PhotoActions: React.FC = () => {
-  const { canvasRef, resetCamera } = useCamera();
+  const { canvasRef, resetCamera, getCompositedCanvas } = useCamera();
 
   // const [link, setLink] = useState<string>('');
   // const [qrCode, setQrCode] = useState<string>('');
@@ -41,14 +41,24 @@ const PhotoActions: React.FC = () => {
   // };
 
   const handleDownload = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
+    // 取得合成畫布
+    const combinedCanvas = getCompositedCanvas();
+    if (combinedCanvas) {
       // 將 canvas 轉換為 blob 物件，並指定圖片格式為 'image/jpeg'，質量為 1.0（無損）。
-      canvas.toBlob((blob) => {
+      combinedCanvas.toBlob((blob: Blob | null) => {
         if (!blob) return;
         // 使用 file-saver 下載
         saveAs(blob, 'picquads_photobooth.jpg');
       }, 'image/jpeg', 1.0);
+    } else {
+      // 如果合成方法無法使用，則使用原先的畫布。
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.toBlob((blob: Blob | null) => {
+          if (!blob) return;
+          saveAs(blob, 'picquads_photobooth.jpg');
+        }, 'image/jpeg', 1.0);
+      }
     }
   };
 

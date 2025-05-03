@@ -91,6 +91,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const mediaStreamRef = useRef<MediaStream | null>(null); // 相機串流 MediaStream
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null); // 倒數計時器
   const lastActionRef = useRef<(() => void) | null>(null); // 上次失敗的操作
+  const editorCanvasRef = useRef<HTMLCanvasElement | null>(null); // 編輯器畫布
 
   useEffect(() => {
     // unmount 時，停止 MediaStream 並清除倒數計時器。
@@ -278,11 +279,30 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => openCamera(), 100);
   }, [openCamera]);
 
+  // 合成畫布
+  const getCompositedCanvas = useCallback(() => {
+    if (!canvasRef.current || !editorCanvasRef.current) return null;
+    
+    const tempCanvas = document.createElement('canvas');
+    const mainCanvas = canvasRef.current;
+    tempCanvas.width = mainCanvas.width;
+    tempCanvas.height = mainCanvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    if (!tempCtx) return null;
+
+    tempCtx.drawImage(mainCanvas, 0, 0);
+    tempCtx.drawImage(editorCanvasRef.current, 0, 0);
+    
+    return tempCanvas;
+  }, []);
+
   return (
     <CameraContext.Provider value={{ 
       state,
       cameraRef,
       canvasRef,
+      editorCanvasRef,
       capturePhoto,
       setFrame,
       switchCamera,
@@ -291,8 +311,9 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       retakePhoto,
       continueCapture,
       completeCapture,
+      getCompositedCanvas,
       resetCamera,
-      retry
+      retry,
     }}>
       <canvas ref={canvasRef} style={{ display: 'none' }} />
       {children}

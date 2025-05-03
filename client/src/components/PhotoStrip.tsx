@@ -42,12 +42,11 @@ interface RenderPhotoProps {
 
 const PhotoStrip: React.FC<PhotoStripProps> = React.memo(({ frameColor, filter, dateFormat, timeFormat, customTextConfig }) => {
   const { setAlert } = useAlert();
-  const { state, canvasRef } = useCamera();
+  const { state, canvasRef, editorCanvasRef } = useCamera();
   const { frame, isMobileDevice, capturedImages: images } = state;
 
   const isRenderingRef = useRef(false); // 用於避免多次執行 renderCanvas
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null); // 用於在記憶體中預先處理照片
-  const editorCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [loadedImages, setLoadedImages] = useState<LoadedImage[]>([]); // 儲存已載入的照片
   const [fontLoaded, setFontLoaded] = useState<boolean>(false); // 追蹤字體是否載入完成

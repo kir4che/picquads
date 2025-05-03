@@ -53,6 +53,7 @@ export interface CameraContextType {
   state: CameraState;
   cameraRef: React.RefObject<CameraType | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  editorCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   setFrame: (frame: Frame) => void;
   switchCamera: () => void;
   openCamera: () => void;
@@ -61,6 +62,7 @@ export interface CameraContextType {
   retakePhoto: () => void;
   continueCapture: () => void;
   completeCapture: () => void;
+  getCompositedCanvas: () => HTMLCanvasElement | null;
   resetCamera: () => void;
   retry: () => void;
 }
