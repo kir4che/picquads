@@ -5,7 +5,10 @@ import { AlertType } from '../contexts/AlertContext';
 import ErrorIcon from '../assets/icons/error-close.svg?react';
 import SuccessIcon from '../assets/icons/check-circle.svg?react';
 
-const alertStyles: Record<AlertType, { background: string; border: string; text: string }> = {
+const alertStyles: Record<
+  AlertType,
+  { background: string; border: string; text: string }
+> = {
   error: {
     background: 'bg-red-50',
     border: 'border-red-300',
@@ -34,10 +37,10 @@ const Alert: React.FC = () => {
   const Icon = type === 'error' ? ErrorIcon : SuccessIcon;
 
   return (
-    <div 
-      className={`absolute flex items-center gap-2 px-4 py-3 -translate-x-1/2 border rounded top-4 left-1/2 min-w-2/3 sm:min-w-80 w-fit ${styles.background} ${styles.border} ${styles.text}`}
+    <div
+      className={`absolute top-4 left-1/2 flex w-fit min-w-2/3 -translate-x-1/2 items-center gap-2 rounded border px-4 py-3 sm:min-w-80 ${styles.background} ${styles.border} ${styles.text}`}
     >
-      <Icon className="w-5 h-5" />
+      <Icon className='h-5 w-5' />
       <p>{message}</p>
     </div>
   );

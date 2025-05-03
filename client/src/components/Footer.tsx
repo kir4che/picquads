@@ -5,37 +5,37 @@ import KoFiIcon from '../assets/icons/kofi.svg?react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="flex flex-col items-center justify-center px-4 py-3 text-xs border-t sm:flex-row gap-x-4 text-violet-300 border-violet-100">
-      <div className="flex flex-col items-center sm:flex-row gap-y-1.5 gap-x-3">
-        <p className="text-center">
-          © made by {' '}
+    <footer className='flex flex-col items-center justify-center gap-x-4 border-t border-violet-100 px-4 py-3 text-xs text-violet-300 sm:flex-row'>
+      <div className='flex flex-col items-center gap-x-3 gap-y-1.5 sm:flex-row'>
+        <p className='text-center'>
+          © made by{' '}
           <Link
-            to="https://github.com/kir4che"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="kir4che GitHub"
+            to='https://github.com/kir4che'
+            target='_blank'
+            rel='noopener noreferrer'
+            aria-label='kir4che GitHub'
           >
             kir4che
           </Link>
         </p>
-        <div className="flex items-center gap-x-2 text-violet-400">
+        <div className='flex items-center gap-x-2 text-violet-400'>
           <Link
-            to="https://paypal.me/dcxxiii" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="transition-colors hover:text-violet-500"
-            aria-label="Donate via PayPal"
+            to='https://paypal.me/dcxxiii'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='transition-colors hover:text-violet-500'
+            aria-label='Donate via PayPal'
           >
-            <PaypalIcon className="w-5 h-5" />
+            <PaypalIcon className='h-5 w-5' />
           </Link>
           <Link
-            to="https://ko-fi.com/kir4che" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="transition-colors hover:text-violet-500"
-            aria-label="Donate via Ko-fi"
+            to='https://ko-fi.com/kir4che'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='transition-colors hover:text-violet-500'
+            aria-label='Donate via Ko-fi'
           >
-            <KoFiIcon className="w-5 h-5" />
+            <KoFiIcon className='h-5 w-5' />
           </Link>
         </div>
       </div>

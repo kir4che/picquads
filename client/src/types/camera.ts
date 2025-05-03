@@ -2,12 +2,12 @@ import { CameraProps } from 'react-camera-pro';
 
 import { Frame } from '../configs/frame';
 
-export type CameraStatus = 
-  | 'selectingFrame' 
-  | 'idle' 
-  | 'capturing' 
-  | 'captured' 
-  | 'completed' 
+export type CameraStatus =
+  | 'selectingFrame'
+  | 'idle'
+  | 'capturing'
+  | 'captured'
+  | 'completed'
   | 'error';
 
 export interface CapturedImage {

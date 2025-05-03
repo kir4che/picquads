@@ -15,5 +15,5 @@ export const availableFonts = [
   { id: 'ChenYuluoyan', label: '辰宇落雁體' },
   { id: 'GenRyuMin2', label: '源流明體月' },
   { id: 'SourceHanSerifTC', label: '思源宋體' },
-  { id: 'Naikai', label: '内海フォント' }
+  { id: 'Naikai', label: '内海フォント' },
 ];

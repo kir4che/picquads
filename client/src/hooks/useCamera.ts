@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import CameraContext from "../contexts/CameraContext";
+import CameraContext from '../contexts/CameraContext';
 
 export const useCamera = () => {
   const context = useContext(CameraContext);

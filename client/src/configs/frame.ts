@@ -49,18 +49,18 @@ export const frameConfigs: Record<string, FrameConfig> = {
         top: toPx(4.25),
         bottom: 0,
         left: toPx((50.5 - 44) / 2),
-        right: toPx((50.5 - 44) / 2)
+        right: toPx((50.5 - 44) / 2),
       },
       gap: {
         vertical: 0,
-        horizontal: 0
+        horizontal: 0,
       },
       datetime: {
-        x: toPx(50.5-(50.5 - 44) / 2),
+        x: toPx(50.5 - (50.5 - 44) / 2),
         y: toPx(76 - 4.25) + 24,
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
   'vertical-2/1': {
     id: 'vertical-2/1',
@@ -74,18 +74,18 @@ export const frameConfigs: Record<string, FrameConfig> = {
         top: toPx((76 - 32 * 2) / 2),
         bottom: 0,
         left: toPx((50.5 - 44) / 2),
-        right: toPx((50.5 - 44) / 2)
+        right: toPx((50.5 - 44) / 2),
       },
       gap: {
         vertical: toPx(1.125),
-        horizontal: 0
+        horizontal: 0,
       },
       datetime: {
-        x: toPx(50.5-(50.5 - 44) / 2),
+        x: toPx(50.5 - (50.5 - 44) / 2),
         y: toPx(73.6),
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
   'vertical-4/1': {
     id: 'vertical-4/1',
@@ -99,43 +99,43 @@ export const frameConfigs: Record<string, FrameConfig> = {
         top: toPx(4.25),
         bottom: 0,
         left: toPx((50.5 - 44.5) / 2),
-        right: toPx((50.5 - 44.5) / 2)
+        right: toPx((50.5 - 44.5) / 2),
       },
       gap: {
         vertical: toPx(1.875),
-        horizontal: 0
+        horizontal: 0,
       },
       datetime: {
-        x: toPx(50.5-(50.5 - 44) / 2),
+        x: toPx(50.5 - (50.5 - 44) / 2),
         y: toPx(152 - 4.25) + 24,
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
   'vertical-2/2': {
     id: 'vertical-2/2',
     name: '四宮格直式',
     totalCaptures: 4,
     gridSize: { rows: 2, cols: 2 },
-    dimensions: { 
+    dimensions: {
       canvas: { width: toPx(111.47), height: toPx(152) },
       photo: { width: toPx(49), height: toPx(62) },
       padding: {
         top: toPx(6.25),
         bottom: 0,
         left: toPx(5.5),
-        right: toPx(5.5)
+        right: toPx(5.5),
       },
       gap: {
         vertical: toPx(2.25),
-        horizontal: toPx(2.5)
+        horizontal: toPx(2.5),
       },
       datetime: {
         x: toPx(111.47 - 5.5),
         y: toPx(152 - 6.25) + 24,
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
   'vertical-3/2': {
     id: 'vertical-3/2',
@@ -149,18 +149,18 @@ export const frameConfigs: Record<string, FrameConfig> = {
         top: toPx(5),
         bottom: 0,
         left: toPx(6.7),
-        right: toPx(6.7)
+        right: toPx(6.7),
       },
       gap: {
         vertical: toPx(1.5),
-        horizontal: toPx(2.25)
+        horizontal: toPx(2.25),
       },
       datetime: {
         x: toPx(97.69 - 6.7),
         y: toPx(152 - 5) + 24,
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
   'vertical-4/2': {
     id: 'vertical-4/2',
@@ -174,18 +174,18 @@ export const frameConfigs: Record<string, FrameConfig> = {
         top: toPx(5),
         bottom: 0,
         left: toPx(4.5),
-        right: toPx(4.5)
+        right: toPx(4.5),
       },
       gap: {
         vertical: toPx(1.25),
-        horizontal: toPx(1.875)
+        horizontal: toPx(1.875),
       },
       datetime: {
         x: toPx(100.42 - 4.5),
         y: toPx(152 - 5) + 24,
-        align: 'right'
-      }
-    }
+        align: 'right',
+      },
+    },
   },
 };
 

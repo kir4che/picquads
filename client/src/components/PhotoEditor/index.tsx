@@ -31,28 +31,37 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
     font: 'PlayfairDisplay',
     position: { x: 0, y: 0 },
     color: '#FFFFFF',
-    size: 48
+    size: 48,
   });
 
-  const handleColorChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newColor = e.target.value;
-    // 類似 setTimeout 機制，在下一個瀏覽器繪製幀時執行更新。
-    // 若在一幀內收到多個顏色更新，只有最後一個會被實際執行，等於節流 (throttling)。
-    requestAnimationFrame(() => setFrameColor(newColor));
-  }, []);
+  const handleColorChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newColor = e.target.value;
+      // 類似 setTimeout 機制，在下一個瀏覽器繪製幀時執行更新。
+      // 若在一幀內收到多個顏色更新，只有最後一個會被實際執行，等於節流 (throttling)。
+      requestAnimationFrame(() => setFrameColor(newColor));
+    },
+    []
+  );
 
   return (
-    <div className="flex flex-col items-center gap-y-2 md:gap-y-4" aria-label="Photo editor">
+    <div
+      className='flex flex-col items-center gap-y-2 md:gap-y-4'
+      aria-label='Photo editor'
+    >
       <Filters filter={filter} onFilterChange={setFilter} />
       <div className='flex flex-col items-start justify-center gap-x-8 gap-y-3 md:flex-row'>
         <div className='w-full space-y-4'>
           <PhotoActions />
-          <CustomText customTextConfig={customTextConfig} setCustomTextConfig={setCustomTextConfig} />
-          <DateTimeSelect 
-            dateFormat={dateFormat} 
-            setDateFormat={setDateFormat} 
-            timeFormat={timeFormat} 
-            setTimeFormat={setTimeFormat} 
+          <CustomText
+            customTextConfig={customTextConfig}
+            setCustomTextConfig={setCustomTextConfig}
+          />
+          <DateTimeSelect
+            dateFormat={dateFormat}
+            setDateFormat={setDateFormat}
+            timeFormat={timeFormat}
+            setTimeFormat={setTimeFormat}
           />
         </div>
         <div className='flex flex-col items-center gap-y-3'>
@@ -61,13 +70,15 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
             filter,
             dateFormat,
             timeFormat,
-            customTextConfig
+            customTextConfig,
           })}
           <FormField
-            type="color"
+            type='color'
             value={frameColor}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleColorChange(e)}
-            className="w-20"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleColorChange(e)
+            }
+            className='w-20'
           />
         </div>
       </div>

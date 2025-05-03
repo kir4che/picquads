@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @font-face {
   font-family: 'ChenYuluoyan';
@@ -66,24 +66,24 @@
 @theme {
   --breakpoint-xs: 480px;
 
-  --color-pink-50: #F9F0F5;
-  --color-pink-100: #FFCFE8;
-  --color-pink-200: #FEBADE;
-  --color-pink-300: #FA9CCD;
-  --color-pink-400: #F181BB;
-  --color-pink-500: #E866A8;
-  --color-pink-600: #D05C92;
+  --color-pink-50: #f9f0f5;
+  --color-pink-100: #ffcfe8;
+  --color-pink-200: #febade;
+  --color-pink-300: #fa9ccd;
+  --color-pink-400: #f181bb;
+  --color-pink-500: #e866a8;
+  --color-pink-600: #d05c92;
 
-  --color-violet-50: #F9F7FF;
-  --color-violet-100: #EFE8FF;
-  --color-violet-200: #D3C8F3;
-  --color-violet-300: #C1B3EE;
-  --color-violet-400: #B5A0F5;
-  --color-violet-500: #9F87E9;
-  --color-violet-600: #8F75E1;
-  --color-violet-700: #7F63D9;
-  --color-violet-800: #6F51D1;
-  --color-violet-900: #52428A;
+  --color-violet-50: #f9f7ff;
+  --color-violet-100: #efe8ff;
+  --color-violet-200: #d3c8f3;
+  --color-violet-300: #c1b3ee;
+  --color-violet-400: #b5a0f5;
+  --color-violet-500: #9f87e9;
+  --color-violet-600: #8f75e1;
+  --color-violet-700: #7f63d9;
+  --color-violet-800: #6f51d1;
+  --color-violet-900: #52428a;
 }
 
 body {
@@ -91,33 +91,37 @@ body {
 }
 
 #root {
-  @apply flex flex-col min-h-screen bg-gradient-to-br from-violet-50 from-20% via-violet-100 via-50% to-white to-120%;
+  @apply flex min-h-screen flex-col bg-gradient-to-br from-violet-50 from-20% via-violet-100 via-50% to-white to-120%;
 }
 
 main {
-  @apply flex-1 w-full py-4;
+  @apply w-full flex-1 py-4;
 }
 
 a {
   @apply hover:underline;
 }
 
-input[type="color"], button, select {
+input[type='color'],
+button,
+select {
   @apply cursor-pointer disabled:cursor-not-allowed;
 }
 
-input:not(input[type="color"]), select, textarea {
-  @apply bg-white border rounded-md focus:outline-none;
+input:not(input[type='color']),
+select,
+textarea {
+  @apply rounded-md border bg-white focus:outline-none;
 }
 
-input[type="color"]::-moz-color-swatch {
+input[type='color']::-moz-color-swatch {
   @apply rounded-md border-violet-300;
 }
 
-input[type="color"]::-webkit-color-swatch {
+input[type='color']::-webkit-color-swatch {
   @apply rounded border-violet-300;
 }
 
-input[type="color"]::-webkit-color-swatch-wrapper {
-  @apply p-0 rounded-none;
+input[type='color']::-webkit-color-swatch-wrapper {
+  @apply rounded-none p-0;
 }

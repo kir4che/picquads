@@ -8,10 +8,10 @@ declare module '*.svg?react' {
 }
 
 interface ImportMetaEnv {
-  readonly VITE_BACKEND_URL: string
-  readonly VITE_VERSION: string
+  readonly VITE_BACKEND_URL: string;
+  readonly VITE_VERSION: string;
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }

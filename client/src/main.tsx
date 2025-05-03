@@ -1,13 +1,13 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 
-import { AlertProvider } from './contexts/AlertContext'
-import { CameraProvider } from './contexts/CameraContext'
+import { AlertProvider } from './contexts/AlertContext';
+import { CameraProvider } from './contexts/CameraContext';
 
-import App from './App'
+import App from './App';
 
-import './style.css'
+import './style.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,5 +18,5 @@ createRoot(document.getElementById('root')!).render(
         </CameraProvider>
       </AlertProvider>
     </BrowserRouter>
-  </StrictMode>,
-)
+  </StrictMode>
+);
