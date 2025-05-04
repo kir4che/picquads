@@ -55,7 +55,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
       aria-label='Filter selection'
     >
       <PaginationBtn
-        icon={<ChevronLeft className='h-5 w-5' />}
+        icon={<ChevronLeft className='h-5 w-5 text-gray-700' />}
         onClick={handlePrevPage}
         disabled={currentPage === 0}
         ariaLabel='Previous filter'
@@ -78,7 +78,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
         ))}
       </div>
       <PaginationBtn
-        icon={<ChevronRight className='h-5 w-5' />}
+        icon={<ChevronRight className='h-5 w-5 text-gray-700' />}
         onClick={handleNextPage}
         disabled={currentPage === totalPages - 1}
         ariaLabel='Next filter'

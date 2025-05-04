@@ -63,7 +63,7 @@ const CustomText: React.FC<CustomTextProps> = ({
           <div
             className={`overflow-hidden transition-all duration-300 ease-in-out ${isTextSettingsExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className='space-y-3 py-4'>
+            <div className='space-y-3 pt-4'>
               <div className='flex gap-x-4'>
                 <FormField
                   id='customTextColor'
@@ -78,6 +78,8 @@ const CustomText: React.FC<CustomTextProps> = ({
                 <FormField
                   id='customTextSize'
                   type='number'
+                  inputMode='numeric'
+                  pattern='[0-9]*'
                   label='Font Size'
                   value={size}
                   onChange={handleChange('size')}
@@ -99,6 +101,8 @@ const CustomText: React.FC<CustomTextProps> = ({
                   id='customTextX'
                   name='x'
                   type='number'
+                  inputMode='numeric'
+                  pattern='[0-9]*'
                   label='X coordinate'
                   value={position.x}
                   onChange={handleChange('position')}
@@ -109,6 +113,8 @@ const CustomText: React.FC<CustomTextProps> = ({
                   id='customTextY'
                   name='y'
                   type='number'
+                  inputMode='numeric'
+                  pattern='[0-9]*'
                   label='Y coordinate'
                   value={position.y}
                   onChange={handleChange('position')}

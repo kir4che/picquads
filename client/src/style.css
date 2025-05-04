@@ -116,11 +116,11 @@
   }
 
   input[type='color']::-moz-color-swatch {
-    @apply rounded-md border-violet-300;
+    @apply rounded border border-violet-300;
   }
 
   input[type='color']::-webkit-color-swatch {
-    @apply rounded border-violet-300;
+    @apply rounded border border-violet-300;
   }
 
   input[type='color']::-webkit-color-swatch-wrapper {

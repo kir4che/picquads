@@ -4,7 +4,7 @@ const Header: React.FC = () => {
   const location = useLocation();
 
   return (
-    <header className='grid grid-cols-3 items-center px-4 py-2 text-xs text-violet-400'>
+    <header className='grid grid-cols-3 items-center px-4 py-2 text-xs text-nowrap text-violet-400'>
       <div className='justify-self-start'>
         <p>Version {import.meta.env.VITE_VERSION}</p>
       </div>

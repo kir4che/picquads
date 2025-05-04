@@ -29,9 +29,9 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
   const [customTextConfig, setCustomTextConfig] = useState<CustomTextConfig>({
     text: '',
     font: 'PlayfairDisplay',
-    position: { x: 0, y: 0 },
+    position: { x: 0, y: 20 },
     color: '#FFFFFF',
-    size: 48,
+    size: 64,
   });
 
   const handleColorChange = useCallback(
