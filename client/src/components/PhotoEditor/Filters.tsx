@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { FilterType, filterPreset } from '../../configs/filter';
 import PaginationBtn from '../PaginationBtn';
 import usePagination from '../../hooks/usePagination';
-
-import NavArrowLeftIcon from '../../assets/icons/nav-arrow-left.svg?react';
-import NavArrowRightIcon from '../../assets/icons/nav-arrow-right.svg?react';
 
 interface FiltersProps {
   filter: FilterType;
@@ -56,12 +55,12 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
       aria-label='Filter selection'
     >
       <PaginationBtn
-        icon={<NavArrowLeftIcon className='h-5 w-5' />}
+        icon={<ChevronLeft className='h-5 w-5' />}
         onClick={handlePrevPage}
         disabled={currentPage === 0}
         ariaLabel='Previous filter'
       />
-      <div className='flex w-full gap-x-2' aria-label='Filter options'>
+      <div className='flex w-fit gap-x-2' aria-label='Filter options'>
         {visibleFilters.map((value) => (
           <button
             key={value}
@@ -79,7 +78,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
         ))}
       </div>
       <PaginationBtn
-        icon={<NavArrowRightIcon className='h-5 w-5' />}
+        icon={<ChevronRight className='h-5 w-5' />}
         onClick={handleNextPage}
         disabled={currentPage === totalPages - 1}
         ariaLabel='Next filter'

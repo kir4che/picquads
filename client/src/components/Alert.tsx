@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
+import { CircleX, CircleCheck } from 'lucide-react';
+
 import { useAlert } from '../hooks/useAlert';
 import { AlertType } from '../contexts/AlertContext';
-
-import ErrorIcon from '../assets/icons/error-close.svg?react';
-import SuccessIcon from '../assets/icons/check-circle.svg?react';
 
 const alertStyles: Record<
   AlertType,
@@ -34,7 +33,7 @@ const Alert: React.FC = () => {
   if (!message) return null;
 
   const styles = alertStyles[type];
-  const Icon = type === 'error' ? ErrorIcon : SuccessIcon;
+  const Icon = type === 'error' ? CircleX : CircleCheck;
 
   return (
     <div

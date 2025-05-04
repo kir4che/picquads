@@ -1,11 +1,10 @@
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 import { CustomTextConfig, availableFonts } from '../../types/editor';
 
 import FormField from '../FormField';
 import Select from '../Select';
-
-import ChevronDownIcon from '../../assets/icons/chevron-down.svg?react';
 
 interface CustomTextProps {
   customTextConfig: CustomTextConfig;
@@ -47,7 +46,7 @@ const CustomText: React.FC<CustomTextProps> = ({
         aria-label='Enter custom text'
       />
       {text && (
-        <div className='flex max-w-64 flex-col'>
+        <div className='flex max-w-[286px] flex-col'>
           <button
             onClick={() => setIsTextSettingsExpanded((prev) => !prev)}
             className='flex w-full items-center justify-between border-b border-violet-700 py-2 text-xs text-gray-600 focus:outline-none'
@@ -55,7 +54,7 @@ const CustomText: React.FC<CustomTextProps> = ({
             aria-label='Custom text settings'
           >
             Text Settings
-            <ChevronDownIcon
+            <ChevronDown
               className={`h-5 w-5 transition-transform duration-300 ${
                 isTextSettingsExpanded ? 'rotate-180 transform' : ''
               }`}

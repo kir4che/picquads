@@ -1,9 +1,8 @@
 import { useState } from 'react';
+import { Camera } from 'lucide-react';
 
 import { useAlert } from '../hooks/useAlert';
 import { useCamera } from '../hooks/useCamera';
-
-import CameraIcon from '../assets/icons/camera.svg?react';
 
 const DURATION_OPTIONS = [0, 3, 5, 10] as const;
 const INITIAL_DURATION = 3;
@@ -92,12 +91,12 @@ const CameraActions: React.FC = () => {
       </div>
       {/* 拍照按鈕 */}
       <button
-        className='ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-violet-500 bg-white text-violet-500 hover:bg-violet-500 hover:text-white disabled:border-gray-400 disabled:bg-gray-400 disabled:text-white'
+        className='ml-auto flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-500 bg-white text-violet-500 hover:bg-violet-500 hover:text-white disabled:border-gray-400 disabled:bg-gray-400 disabled:text-white'
         onClick={handleStartCapture}
         disabled={!state.isCameraReady}
         aria-label='Capture photo'
       >
-        <CameraIcon className='h-6 w-6' />
+        <Camera className='h-6 w-6' />
       </button>
     </div>
   );

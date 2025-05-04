@@ -1,4 +1,4 @@
-import LinkIcon from '../assets/icons/link.svg?react';
+import { Link } from 'lucide-react';
 
 interface QRCodeProps {
   qrCode: string;
@@ -21,7 +21,7 @@ const QRCode: React.FC<QRCodeProps> = ({ qrCode, link }) => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          <LinkIcon className='h-4 w-4' />
+          <Link className='h-4 w-4' />
           Link
         </a>
         <p className='text-center text-sm text-gray-500'>

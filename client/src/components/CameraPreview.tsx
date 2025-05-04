@@ -1,11 +1,10 @@
 import { Camera } from 'react-camera-pro';
+import { SwitchCamera } from 'lucide-react';
 
 import { useCamera } from '../hooks/useCamera';
 import { getFrameDimensions } from '../utils/frame';
 
 import CameraActions from './CameraActions';
-
-import ChangeCameraIcon from '../assets/icons/change-camera.svg?react';
 
 const CAMERA_ERROR_MESSAGES = {
   canvas: 'Unable to capture photo.',
@@ -30,7 +29,7 @@ const CameraPreview: React.FC = () => {
   const dimensions = getFrameDimensions(frame.id);
 
   return (
-    <div className='flex flex-col gap-y-3'>
+    <div className='flex flex-col gap-y-2'>
       <div
         className={`relative w-full overflow-hidden rounded-md bg-white shadow-lg aspect-[${CAMERA_ASPECT_RATIO}]`}
       >
@@ -76,11 +75,11 @@ const CameraPreview: React.FC = () => {
               )}
             </div>
             <button
-              className='absolute top-2 right-2 rounded-full bg-gray-800 p-1.5 text-white opacity-80 hover:opacity-65'
+              className='absolute top-2.5 right-2.5 rounded-full bg-gray-600 p-1.5 text-white opacity-80 hover:opacity-65'
               onClick={switchCamera}
               aria-label='Switch camera'
             >
-              <ChangeCameraIcon className='h-6 w-6' />
+              <SwitchCamera className='h-5 w-5' />
             </button>
           </>
         )}

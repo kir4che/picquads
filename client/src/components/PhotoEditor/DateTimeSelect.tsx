@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LoaderCircle, CircleCheckBig } from 'lucide-react';
 
 import { dateFormats, timeFormats } from '../../configs/datetime';
 
@@ -43,19 +44,27 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
 
   return (
     <>
-      <label className='mb-1.5 flex items-center gap-x-2 text-sm text-gray-600'>
+      <label className='relative pl-6 text-sm text-gray-600 select-none'>
         <input
           type='checkbox'
+          className='peer absolute h-0 w-0 opacity-0'
           checked={showDateTime}
           onChange={handleCheckboxChange}
-          className='h-3.5 w-3.5'
           aria-checked={showDateTime}
           aria-label='Show date & time'
         />
         Show Date & Time
+        <LoaderCircle
+          fill='white'
+          className='absolute -top-[0.5px] left-0 h-4.5 w-4.5 peer-checked:opacity-0'
+        />
+        <CircleCheckBig
+          fill='white'
+          className='absolute -top-[0.5px] left-0 h-4.5 w-4.5 opacity-0 peer-checked:opacity-100'
+        />
       </label>
       {showDateTime && (
-        <div className='flex items-center gap-x-2 text-sm'>
+        <div className='space-y-2 py-2 text-sm'>
           <Select
             value={dateFormat}
             onChange={handleSelectChange(setDateFormat)}
