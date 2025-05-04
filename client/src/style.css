@@ -86,42 +86,44 @@
   --color-violet-900: #52428a;
 }
 
-body {
-  @apply tracking-wide;
-}
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-violet-50 from-20% via-violet-100 via-50% to-white to-120% tracking-wide;
+  }
 
-#root {
-  @apply flex min-h-screen flex-col bg-gradient-to-br from-violet-50 from-20% via-violet-100 via-50% to-white to-120%;
-}
+  #root {
+    @apply flex min-h-screen flex-col;
+  }
 
-main {
-  @apply w-full flex-1 py-4;
-}
+  main {
+    @apply w-full flex-1 py-4;
+  }
 
-a {
-  @apply hover:underline;
-}
+  a {
+    @apply hover:underline;
+  }
 
-input[type='color'],
-button,
-select {
-  @apply cursor-pointer disabled:cursor-not-allowed;
-}
+  input[type='color'],
+  button,
+  select {
+    @apply cursor-pointer disabled:cursor-not-allowed;
+  }
 
-input:not(input[type='color']),
-select,
-textarea {
-  @apply rounded-md border bg-white focus:outline-none;
-}
+  input:not(input[type='color']),
+  select,
+  textarea {
+    @apply rounded-md border bg-white text-gray-900 focus:outline-none;
+  }
 
-input[type='color']::-moz-color-swatch {
-  @apply rounded-md border-violet-300;
-}
+  input[type='color']::-moz-color-swatch {
+    @apply rounded-md border-violet-300;
+  }
 
-input[type='color']::-webkit-color-swatch {
-  @apply rounded border-violet-300;
-}
+  input[type='color']::-webkit-color-swatch {
+    @apply rounded border-violet-300;
+  }
 
-input[type='color']::-webkit-color-swatch-wrapper {
-  @apply rounded-none p-0;
+  input[type='color']::-webkit-color-swatch-wrapper {
+    @apply rounded-none p-0;
+  }
 }
