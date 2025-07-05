@@ -1,3 +1,5 @@
+import React, { useMemo } from 'react';
+
 import { frameMap } from '../../configs/frame';
 import { useCamera } from '../../hooks/useCamera';
 import { getFrameList } from '../../utils/frame';
@@ -8,6 +10,17 @@ import PhotoStrip from '../../components/PhotoStrip';
 
 const Home: React.FC = () => {
   const { state, setFrame, retry, resetCamera } = useCamera();
+
+  const customTextConfig = useMemo(
+    () => ({
+      text: '',
+      font: 'PlayfairDisplay',
+      position: { x: 0, y: 0 },
+      color: '#FFFFFF',
+      size: 48,
+    }),
+    []
+  );
 
   return (
     <main>
@@ -46,13 +59,7 @@ const Home: React.FC = () => {
               filter='none'
               dateFormat=''
               timeFormat=''
-              customTextConfig={{
-                text: '',
-                font: 'PlayfairDisplay',
-                position: { x: 0, y: 0 },
-                color: '#FFFFFF',
-                size: 48,
-              }}
+              customTextConfig={customTextConfig}
             />
           </PhotoEditor>
         </div>
