@@ -2,6 +2,9 @@
 
 PicQuads is an online photo booth website that allows users to capture photos on mobile or desktop, choose from various frame layouts, customize frame colors, and apply filter effects to create a personalized and beautiful photo strip.
 
+https://github.com/user-attachments/assets/2cb91b31-4f82-4b0e-9442-41ebd59723b9
+
+
 ## Features
 
 - **Multiple Frames**: Choose from various frames layouts such as single, double, triple, etc.
