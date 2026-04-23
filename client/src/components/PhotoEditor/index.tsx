@@ -19,7 +19,7 @@ interface PhotoEditorProps {
   }>;
 }
 
-const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
+const PhotoEditor = ({ children }: PhotoEditorProps) => {
   const [frameColor, setFrameColor] = useState<string>('#000000');
   const [filter, setFilter] = useState<FilterType>('none');
 
@@ -46,12 +46,12 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
 
   return (
     <div
-      className='flex flex-col items-center gap-y-2 md:gap-y-4'
+      className='flex w-full flex-col items-center gap-y-2 px-4 md:gap-y-4'
       aria-label='Photo editor'
     >
       <Filters filter={filter} onFilterChange={setFilter} />
-      <div className='flex flex-col items-start justify-center gap-x-8 gap-y-3 md:flex-row'>
-        <div className='w-full space-y-4'>
+      <div className='flex w-full flex-col items-center gap-y-4 md:flex-row md:items-start md:justify-center md:gap-x-8'>
+        <div className='order-2 w-full max-w-md space-y-4 md:order-1 md:w-80 md:shrink-0'>
           <PhotoActions />
           <CustomText
             customTextConfig={customTextConfig}
@@ -64,14 +64,34 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({ children }) => {
             setTimeFormat={setTimeFormat}
           />
         </div>
-        <div className='flex flex-col items-center gap-y-3'>
-          {cloneElement(children, {
-            frameColor,
-            filter,
-            dateFormat,
-            timeFormat,
-            customTextConfig,
-          })}
+        <div className='order-1 flex w-full flex-col items-center gap-y-3 md:order-2 md:w-auto'>
+          <div
+            className='relative'
+            style={{ width: displayW, height: displayH }}
+          >
+            {cloneElement(children, {
+              frameColor,
+              filter,
+              dateFormat,
+              timeFormat,
+              customTextConfig,
+            })}
+            <StickerLayer
+              stickers={stickers}
+              selectedStickerId={selectedStickerId}
+              activeStickerSrc={activeStickerSrc}
+              onAddSticker={addSticker}
+              onUpdateSticker={updateSticker}
+              onSelectSticker={selectSticker}
+              onRemoveSticker={removeSticker}
+              onClearSelection={() => {
+                clearSelection();
+                setActiveSrc(null);
+              }}
+              displayWidth={displayW}
+              displayHeight={displayH}
+            />
+          </div>
           <FormField
             type='color'
             value={frameColor}

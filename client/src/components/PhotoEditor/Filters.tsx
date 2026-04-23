@@ -10,7 +10,7 @@ interface FiltersProps {
   onFilterChange: (filter: FilterType) => void;
 }
 
-const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
+const Filters = ({ filter, onFilterChange }: FiltersProps) => {
   const [filtersPerPage, setFiltersPerPage] = useState(() =>
     window.innerWidth < 480 ? 3 : window.innerWidth < 1024 ? 5 : 7
   );
@@ -55,7 +55,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
       aria-label='Filter selection'
     >
       <PaginationBtn
-        icon={<ChevronLeft className='h-5 w-5 text-gray-700' />}
+        icon={<ChevronLeft size={20} />}
         onClick={handlePrevPage}
         disabled={currentPage === 0}
         ariaLabel='Previous filter'
@@ -65,7 +65,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
           <button
             key={value}
             onClick={() => handleFilterChange(value as FilterType)}
-            className={`flex-shrink-0 snap-center rounded-full px-2.5 py-1 text-sm capitalize transition-all ${
+            className={`shrink-0 snap-center rounded-full px-2.5 py-1 text-sm capitalize transition-all ${
               filter === value
                 ? 'bg-violet-600 text-white'
                 : 'bg-white text-black'
@@ -78,7 +78,7 @@ const Filters: React.FC<FiltersProps> = ({ filter, onFilterChange }) => {
         ))}
       </div>
       <PaginationBtn
-        icon={<ChevronRight className='h-5 w-5 text-gray-700' />}
+        icon={<ChevronRight size={20} />}
         onClick={handleNextPage}
         disabled={currentPage === totalPages - 1}
         ariaLabel='Next filter'

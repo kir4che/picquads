@@ -7,7 +7,7 @@ import { useCamera } from '../hooks/useCamera';
 const DURATION_OPTIONS = [0, 3, 5, 10] as const;
 const INITIAL_DURATION = 3;
 
-const CameraActions: React.FC = () => {
+const CameraActions = () => {
   const { setAlert } = useAlert();
   const {
     state,

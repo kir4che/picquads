@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { frameMap } from '../../configs/frame';
 import { useCamera } from '../../hooks/useCamera';
@@ -8,7 +8,7 @@ import CameraPreview from '../../components/CameraPreview';
 import PhotoEditor from '../../components/PhotoEditor';
 import PhotoStrip from '../../components/PhotoStrip';
 
-const Home: React.FC = () => {
+const Home = () => {
   const { state, setFrame, retry, resetCamera } = useCamera();
 
   const customTextConfig = useMemo(

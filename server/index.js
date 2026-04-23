@@ -72,9 +72,8 @@ app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, content } = req.body;
 
-    if (!name || !email || !content) {
+    if (!name || !email || !content)
       return res.status(400).json({ error: 'Please fill in all required fields.' });
-    }
 
     oauth2Client.setCredentials({
       refresh_token: process.env.REFRESH_TOKEN,

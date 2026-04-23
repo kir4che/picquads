@@ -16,7 +16,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const Contact: React.FC = () => {
+const Contact = () => {
   const { setAlert } = useAlert();
   const [isSubmitting, setIsSubmitting] = useState(false);
 

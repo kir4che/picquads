@@ -20,7 +20,7 @@ const alertStyles: Record<
   },
 };
 
-const Alert: React.FC = () => {
+const Alert = () => {
   const { message, type, setAlert } = useAlert();
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const Alert: React.FC = () => {
     <div
       className={`absolute top-4 left-1/2 flex w-fit min-w-2/3 -translate-x-1/2 items-center gap-2 rounded border px-4 py-3 sm:min-w-80 ${styles.background} ${styles.border} ${styles.text}`}
     >
-      <Icon className='h-5 w-5' />
+      <Icon size={20} />
       <p>{message}</p>
     </div>
   );

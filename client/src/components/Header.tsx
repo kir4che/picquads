@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 
-const Header: React.FC = () => {
+const Header = () => {
   const location = useLocation();
 
   return (

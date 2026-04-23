@@ -15,7 +15,7 @@ const CAMERA_ERROR_MESSAGES = {
 
 const CAMERA_ASPECT_RATIO = 1335 / 894;
 
-const CameraPreview: React.FC = () => {
+const CameraPreview = () => {
   const { state, cameraRef, switchCamera, openCamera } = useCamera();
   const {
     status,

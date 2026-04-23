@@ -14,7 +14,7 @@ interface AlertProviderProps {
   children: ReactNode;
 }
 
-export const AlertProvider: React.FC<AlertProviderProps> = ({ children }) => {
+export const AlertProvider = ({ children }: AlertProviderProps) => {
   const [message, setMessage] = useState<string | null>(null);
   const [type, setType] = useState<AlertType>('error');
 

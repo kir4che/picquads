@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
@@ -46,8 +40,14 @@ interface RenderPhotoProps {
   shouldFlipHori: boolean;
 }
 
-const PhotoStrip: React.FC<PhotoStripProps> = React.memo(
-  ({ frameColor, filter, dateFormat, timeFormat, customTextConfig }) => {
+const PhotoStrip = memo(
+  ({
+    frameColor,
+    filter,
+    dateFormat,
+    timeFormat,
+    customTextConfig,
+  }: PhotoStripProps) => {
     const { setAlert } = useAlert();
     const { state, canvasRef, editorCanvasRef } = useCamera();
     const { frame, isMobileDevice, capturedImages: images } = state;
@@ -531,9 +531,8 @@ const PhotoStrip: React.FC<PhotoStripProps> = React.memo(
         />
         <canvas
           ref={editorCanvasRef}
-          className='absolute top-0 left-0 h-full w-full'
+          className='absolute top-0 left-0 z-1 h-full w-full'
           aria-label='Editor overlay'
-          style={{ zIndex: 1 }}
         />
       </div>
     );

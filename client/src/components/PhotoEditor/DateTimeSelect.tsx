@@ -12,12 +12,12 @@ interface DateTimeSelectProps {
   setTimeFormat: (value: string) => void;
 }
 
-const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
+const DateTimeSelect = ({
   dateFormat,
   setDateFormat,
   timeFormat,
   setTimeFormat,
-}) => {
+}: DateTimeSelectProps) => {
   const [showDateTime, setShowDateTime] = useState(false);
 
   const handleCheckboxChange = () => {
@@ -43,7 +43,7 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
     };
 
   return (
-    <>
+    <div>
       <label className='relative pl-6 text-sm text-gray-600 select-none'>
         <input
           type='checkbox'
@@ -56,11 +56,13 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
         Show Date & Time
         <LoaderCircle
           fill='white'
-          className='absolute -top-[0.5px] left-0 h-4.5 w-4.5 peer-checked:opacity-0'
+          size={18}
+          className='absolute top-[-0.5px] left-0 peer-checked:opacity-0'
         />
         <CircleCheckBig
           fill='white'
-          className='absolute -top-[0.5px] left-0 h-4.5 w-4.5 opacity-0 peer-checked:opacity-100'
+          size={18}
+          className='absolute top-[-0.5px] left-0 opacity-0 peer-checked:opacity-100'
         />
       </label>
       {showDateTime && (
@@ -81,7 +83,7 @@ const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
 
