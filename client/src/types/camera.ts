@@ -54,6 +54,7 @@ export interface CameraContextType {
   cameraRef: React.RefObject<CameraType | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   editorCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  stickerCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   setFrame: (frame: Frame) => void;
   switchCamera: () => void;
   openCamera: () => void;

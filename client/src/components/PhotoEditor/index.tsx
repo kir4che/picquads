@@ -2,12 +2,17 @@ import { ReactElement, cloneElement, useState, useCallback } from 'react';
 
 import { FilterType } from '../../configs/filter';
 import { CustomTextConfig } from '../../types/editor';
+import { useCamera } from '../../hooks/useCamera';
+import { getFrameDimensions } from '../../utils/frame';
+import { useStickerManager } from '../../hooks/useStickerManager';
 
 import PhotoActions from '../PhotoActions';
 import FormField from '../FormField';
 import CustomText from './CustomText';
 import DateTimeSelect from './DateTimeSelect';
 import Filters from './Filters';
+import StickerPanel from './StickerPanel';
+import StickerLayer from './StickerLayer';
 
 interface PhotoEditorProps {
   children: ReactElement<{
@@ -22,10 +27,8 @@ interface PhotoEditorProps {
 const PhotoEditor = ({ children }: PhotoEditorProps) => {
   const [frameColor, setFrameColor] = useState<string>('#000000');
   const [filter, setFilter] = useState<FilterType>('none');
-
   const [dateFormat, setDateFormat] = useState<string>('');
   const [timeFormat, setTimeFormat] = useState<string>('');
-
   const [customTextConfig, setCustomTextConfig] = useState<CustomTextConfig>({
     text: '',
     font: 'PlayfairDisplay',
@@ -34,11 +37,26 @@ const PhotoEditor = ({ children }: PhotoEditorProps) => {
     size: 64,
   });
 
+  const { state } = useCamera();
+  const dimensions = getFrameDimensions(state.frame.id);
+  const displayW = dimensions ? dimensions.canvas.width * 0.25 : 0;
+  const displayH = dimensions ? dimensions.canvas.height * 0.25 : 0;
+
+  const {
+    stickers,
+    activeStickerSrc,
+    selectedStickerId,
+    setActiveSrc,
+    addSticker,
+    updateSticker,
+    removeSticker,
+    selectSticker,
+    clearSelection,
+  } = useStickerManager();
+
   const handleColorChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newColor = e.target.value;
-      // 類似 setTimeout 機制，在下一個瀏覽器繪製幀時執行更新。
-      // 若在一幀內收到多個顏色更新，只有最後一個會被實際執行，等於節流 (throttling)。
       requestAnimationFrame(() => setFrameColor(newColor));
     },
     []
@@ -62,6 +80,10 @@ const PhotoEditor = ({ children }: PhotoEditorProps) => {
             setDateFormat={setDateFormat}
             timeFormat={timeFormat}
             setTimeFormat={setTimeFormat}
+          />
+          <StickerPanel
+            activeStickerSrc={activeStickerSrc}
+            onSelect={setActiveSrc}
           />
         </div>
         <div className='order-1 flex w-full flex-col items-center gap-y-3 md:order-2 md:w-auto'>

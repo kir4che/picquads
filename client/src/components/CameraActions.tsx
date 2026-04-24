@@ -91,12 +91,12 @@ const CameraActions = () => {
       </div>
       {/* 拍照按鈕 */}
       <button
-        className='ml-auto flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-500 bg-white text-violet-500 hover:bg-violet-500 hover:text-white disabled:border-gray-400 disabled:bg-gray-400 disabled:text-white'
+        className='ml-auto flex size-10 items-center justify-center rounded-full border-2 border-violet-500 bg-white text-violet-500 hover:bg-violet-500 hover:text-white disabled:border-gray-400 disabled:bg-gray-400 disabled:text-white'
         onClick={handleStartCapture}
         disabled={!state.isCameraReady}
         aria-label='Capture photo'
       >
-        <Camera className='h-6 w-6' />
+        <Camera size={24} />
       </button>
     </div>
   );

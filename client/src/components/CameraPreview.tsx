@@ -66,10 +66,10 @@ const CameraPreview = () => {
                       aspectRatio: `${dimensions.photo.width}/${dimensions.photo.height}`,
                     }}
                   >
-                    <div className='absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-white' />
-                    <div className='absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-white' />
-                    <div className='absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-white' />
-                    <div className='absolute right-0 bottom-0 h-4 w-4 border-r-2 border-b-2 border-white' />
+                    <div className='absolute top-0 left-0 size-4 border-t-2 border-l-2 border-white' />
+                    <div className='absolute top-0 right-0 size-4 border-t-2 border-r-2 border-white' />
+                    <div className='absolute bottom-0 left-0 size-4 border-b-2 border-l-2 border-white' />
+                    <div className='absolute right-0 bottom-0 size-4 border-r-2 border-b-2 border-white' />
                   </div>
                 </div>
               )}
@@ -79,7 +79,7 @@ const CameraPreview = () => {
               onClick={switchCamera}
               aria-label='Switch camera'
             >
-              <SwitchCamera className='h-5 w-5' />
+              <SwitchCamera size={20} />
             </button>
           </>
         )}

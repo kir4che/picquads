@@ -108,9 +108,12 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null); // 相機畫面
   const canvasRef = useRef<HTMLCanvasElement | null>(null); // 照片（從 video 擷取的）
   const mediaStreamRef = useRef<MediaStream | null>(null); // 相機串流 MediaStream
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null); // 倒數計時器
+  const countdownIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  ); // 倒數計時器
   const lastActionRef = useRef<(() => void) | null>(null); // 上次失敗的操作
   const editorCanvasRef = useRef<HTMLCanvasElement | null>(null); // 編輯器畫布
+  const stickerCanvasRef = useRef<HTMLCanvasElement | null>(null); // 貼紙合成用隱藏畫布
 
   useEffect(() => {
     // unmount 時，停止 MediaStream 並清除倒數計時器。
@@ -330,6 +333,9 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     tempCtx.drawImage(mainCanvas, 0, 0);
     tempCtx.drawImage(editorCanvasRef.current, 0, 0);
 
+    if (stickerCanvasRef.current)
+      tempCtx.drawImage(stickerCanvasRef.current, 0, 0);
+
     return tempCanvas;
   }, []);
 
@@ -340,6 +346,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         cameraRef,
         canvasRef,
         editorCanvasRef,
+        stickerCanvasRef,
         capturePhoto,
         setFrame,
         switchCamera,
@@ -353,7 +360,8 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         retry,
       }}
     >
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      <canvas ref={canvasRef} className='hidden' />
+      <canvas ref={stickerCanvasRef} className='hidden' />
       {children}
     </CameraContext.Provider>
   );
