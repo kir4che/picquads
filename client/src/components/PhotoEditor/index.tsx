@@ -1,4 +1,10 @@
-import { ReactElement, cloneElement, useState, useCallback } from 'react';
+import {
+  ReactElement,
+  cloneElement,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 
 import { FilterType } from '../../configs/filter';
 import { CustomTextConfig } from '../../types/editor';
@@ -39,8 +45,22 @@ const PhotoEditor = ({ children }: PhotoEditorProps) => {
 
   const { state } = useCamera();
   const dimensions = getFrameDimensions(state.frame.id);
-  const displayW = dimensions ? dimensions.canvas.width * 0.25 : 0;
-  const displayH = dimensions ? dimensions.canvas.height * 0.25 : 0;
+
+  const [containerWidth, setContainerWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth - 32 : 400
+  );
+
+  useEffect(() => {
+    const handleResize = () => setContainerWidth(window.innerWidth - 32);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const rawW = dimensions ? dimensions.canvas.width * 0.25 : 0;
+  const rawH = dimensions ? dimensions.canvas.height * 0.25 : 0;
+  const scale = rawW > containerWidth ? containerWidth / rawW : 1;
+  const displayW = rawW * scale;
+  const displayH = rawH * scale;
 
   const {
     stickers,
@@ -86,9 +106,9 @@ const PhotoEditor = ({ children }: PhotoEditorProps) => {
             onSelect={setActiveSrc}
           />
         </div>
-        <div className='order-1 flex w-full flex-col items-center gap-y-3 md:order-2 md:w-auto'>
+        <div className='order-1 flex w-full max-w-full flex-col items-center gap-y-3 md:order-2 md:w-auto'>
           <div
-            className='relative'
+            className='relative overflow-hidden'
             style={{ width: displayW, height: displayH }}
           >
             {cloneElement(children, {

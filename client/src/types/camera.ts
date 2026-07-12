@@ -42,6 +42,7 @@ export type CameraAction =
   | { type: 'CLEAR_CAPTURED_PHOTO' }
   | { type: 'COMPLETE' }
   | { type: 'RESET' }
+  | { type: 'CLEAR_ERROR' }
   | { type: 'SET_ERROR' };
 
 export interface CameraType extends CameraProps {
@@ -51,6 +52,7 @@ export interface CameraType extends CameraProps {
 
 export interface CameraContextType {
   state: CameraState;
+  muted: boolean;
   cameraRef: React.RefObject<CameraType | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   editorCanvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -66,4 +68,5 @@ export interface CameraContextType {
   getCompositedCanvas: () => HTMLCanvasElement | null;
   resetCamera: () => void;
   retry: () => void;
+  toggleMute: () => void;
 }

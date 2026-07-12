@@ -3,6 +3,7 @@ import {
   useRef,
   useReducer,
   useCallback,
+  useState,
   ReactNode,
   useMemo,
   useEffect,
@@ -16,6 +17,14 @@ import {
 } from '../types/camera';
 import { Frame } from '../configs/frame';
 import { useAlert } from '../hooks/useAlert';
+import {
+  isMuted,
+  setMuted,
+  playCountdownBeep,
+  playCountdownFinalBeep,
+  playShutterSound,
+  playCompleteSound,
+} from '../utils/audio';
 
 const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -25,7 +34,6 @@ const initialState: CameraState = {
   facingMode: isMobileDevice ? 'user' : 'environment',
   frame: {
     id: '',
-    name: '',
     totalCaptures: 0,
   },
   countdown: 0,
@@ -91,6 +99,8 @@ const cameraReducer = (
       return { ...state, status: 'completed' };
     case 'RESET':
       return initialState;
+    case 'CLEAR_ERROR':
+      return { ...state, status: 'idle', isCameraReady: false };
     case 'SET_ERROR':
       return { ...state, status: 'error' };
     default:
@@ -102,6 +112,7 @@ const CameraContext = createContext<CameraContextType | null>(null);
 
 export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cameraReducer, initialState);
+  const [muted, setMutedState] = useState(isMuted());
   const { setAlert } = useAlert();
 
   const cameraRef = useRef<CameraType>(null); // 相機
@@ -179,6 +190,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const initializeCamera = useCallback(
     async (forcefacingMode?: 'user' | 'environment') => {
       try {
+        stopExistingMediaStream();
         const stream = await tryGetUserMedia(forcefacingMode);
         mediaStreamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
@@ -193,13 +205,19 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         setAlert(null);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Unable to start camera.';
+          err instanceof DOMException &&
+          (err.name === 'NotAllowedError' ||
+            err.name === 'PermissionDeniedError')
+            ? 'Camera access blocked. Please allow camera permission in browser site settings, then tap Retry.'
+            : err instanceof Error
+              ? err.message
+              : 'Unable to start camera.';
         dispatch({ type: 'SET_ERROR' });
         setAlert(errorMessage, 'error');
         lastActionRef.current = () => initializeCamera(forcefacingMode);
       }
     },
-    [tryGetUserMedia, setAlert]
+    [tryGetUserMedia, stopExistingMediaStream, setAlert]
   );
 
   // 設定需要拍攝的照片總數
@@ -233,6 +251,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     try {
       const photoUrl = cameraRef.current.takePhoto();
       if (!photoUrl) throw new Error('Unable to get photo URL.');
+      playShutterSound();
 
       dispatch({
         type: 'CAPTURE_PHOTO',
@@ -254,11 +273,15 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
 
   // 重試上次失敗的操作
   const retry = useCallback(() => {
+    stopExistingMediaStream();
+    dispatch({ type: 'CLEAR_ERROR' });
+
     if (lastActionRef.current) {
-      lastActionRef.current();
+      const retryAction = lastActionRef.current;
       lastActionRef.current = null;
+      retryAction();
     } else initializeCamera(); // 若沒有上次操作的紀錄，則重新初始化相機。
-  }, [initializeCamera]);
+  }, [initializeCamera, stopExistingMediaStream]);
 
   // 開始倒數
   const startCountdown = useCallback(
@@ -274,7 +297,11 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         currentCount -= 1;
 
         // 只要倒數計時器還在運行，就要更新。
-        if (currentCount >= 0) dispatch({ type: 'UPDATE_COUNTDOWN' });
+        if (currentCount >= 0) {
+          dispatch({ type: 'UPDATE_COUNTDOWN' });
+          if (currentCount > 0) playCountdownBeep();
+          else if (currentCount === 0) playCountdownFinalBeep();
+        }
 
         if (currentCount === 0) {
           // 清除倒數計時器，避免計時器繼續運行。
@@ -310,6 +337,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const completeCapture = useCallback(() => {
     stopExistingMediaStream();
     dispatch({ type: 'COMPLETE' });
+    playCompleteSound();
   }, [stopExistingMediaStream]);
 
   // 重置拍攝
@@ -339,10 +367,18 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     return tempCanvas;
   }, []);
 
+  // 切換靜音
+  const toggleMute = useCallback(() => {
+    const newMuted = !muted;
+    setMutedState(newMuted);
+    setMuted(newMuted);
+  }, [muted]);
+
   return (
     <CameraContext.Provider
       value={{
         state,
+        muted,
         cameraRef,
         canvasRef,
         editorCanvasRef,
@@ -358,6 +394,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         getCompositedCanvas,
         resetCamera,
         retry,
+        toggleMute,
       }}
     >
       <canvas ref={canvasRef} className='hidden' />

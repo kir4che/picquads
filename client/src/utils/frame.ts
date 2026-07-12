@@ -10,8 +10,7 @@ export const getFrameDimensions = (id: string) => {
 };
 
 export const getFrameList = (): Frame[] =>
-  Object.values(frameConfigs).map(({ id, name, totalCaptures }) => ({
+  Object.values(frameConfigs).map(({ id, totalCaptures }) => ({
     id,
-    name,
     totalCaptures,
   }));

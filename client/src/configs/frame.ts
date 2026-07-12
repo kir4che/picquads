@@ -4,16 +4,19 @@ import vertical22 from '../assets/images/vertical-2:2.png';
 import vertical32 from '../assets/images/vertical-3:1.png';
 import vertical41 from '../assets/images/vertical-4:1.png';
 import vertical42 from '../assets/images/vertical-4:2.png';
+import horizontal11 from '../assets/images/horizontal-1:1.svg';
+import horizontal21 from '../assets/images/horizontal-2:1.svg';
+import horizontal31 from '../assets/images/horizontal-3:1.svg';
+import square22 from '../assets/images/square-2:2.svg';
+import square33 from '../assets/images/square-3:3.svg';
 
 export interface Frame {
   id: string;
-  name: string;
   totalCaptures: number;
 }
 
 export interface FrameConfig {
   id: string;
-  name: string;
   totalCaptures: number;
   gridSize: {
     rows: number;
@@ -39,7 +42,6 @@ const toPx = (mm: number) => mm * SCALE_FACTOR * 3.779528; // mm -> px 轉換
 export const frameConfigs: Record<string, FrameConfig> = {
   'vertical-1/1': {
     id: 'vertical-1/1',
-    name: '一宮格直式',
     totalCaptures: 1,
     gridSize: { rows: 1, cols: 1 },
     dimensions: {
@@ -64,7 +66,6 @@ export const frameConfigs: Record<string, FrameConfig> = {
   },
   'vertical-2/1': {
     id: 'vertical-2/1',
-    name: '二宮格直式',
     totalCaptures: 2,
     gridSize: { rows: 2, cols: 1 },
     dimensions: {
@@ -89,7 +90,6 @@ export const frameConfigs: Record<string, FrameConfig> = {
   },
   'vertical-4/1': {
     id: 'vertical-4/1',
-    name: '四宮格直式',
     totalCaptures: 4,
     gridSize: { rows: 4, cols: 1 },
     dimensions: {
@@ -114,7 +114,6 @@ export const frameConfigs: Record<string, FrameConfig> = {
   },
   'vertical-2/2': {
     id: 'vertical-2/2',
-    name: '四宮格直式',
     totalCaptures: 4,
     gridSize: { rows: 2, cols: 2 },
     dimensions: {
@@ -139,7 +138,6 @@ export const frameConfigs: Record<string, FrameConfig> = {
   },
   'vertical-3/2': {
     id: 'vertical-3/2',
-    name: '六宮格直式',
     totalCaptures: 6,
     gridSize: { rows: 3, cols: 2 },
     dimensions: {
@@ -164,7 +162,6 @@ export const frameConfigs: Record<string, FrameConfig> = {
   },
   'vertical-4/2': {
     id: 'vertical-4/2',
-    name: '八宮格直式',
     totalCaptures: 8,
     gridSize: { rows: 4, cols: 2 },
     dimensions: {
@@ -187,6 +184,126 @@ export const frameConfigs: Record<string, FrameConfig> = {
       },
     },
   },
+  'horizontal-1/1': {
+    id: 'horizontal-1/1',
+    totalCaptures: 1,
+    gridSize: { rows: 1, cols: 1 },
+    dimensions: {
+      canvas: { width: toPx(76), height: toPx(50.5) },
+      photo: { width: toPx(64), height: toPx(38) },
+      padding: {
+        top: toPx(6.25),
+        bottom: 0,
+        left: toPx(6),
+        right: toPx(6),
+      },
+      gap: {
+        vertical: 0,
+        horizontal: 0,
+      },
+      datetime: {
+        x: toPx(76 - 6),
+        y: toPx(50.5 - 6.25) + 24,
+        align: 'right',
+      },
+    },
+  },
+  'horizontal-2/1': {
+    id: 'horizontal-2/1',
+    totalCaptures: 2,
+    gridSize: { rows: 1, cols: 2 },
+    dimensions: {
+      canvas: { width: toPx(110), height: toPx(50.5) },
+      photo: { width: toPx(44), height: toPx(36) },
+      padding: {
+        top: toPx(7.25),
+        bottom: 0,
+        left: toPx(6),
+        right: toPx(6),
+      },
+      gap: {
+        vertical: 0,
+        horizontal: toPx(2),
+      },
+      datetime: {
+        x: toPx(110 - 6),
+        y: toPx(50.5 - 7.25) + 24,
+        align: 'right',
+      },
+    },
+  },
+  'horizontal-3/1': {
+    id: 'horizontal-3/1',
+    totalCaptures: 3,
+    gridSize: { rows: 1, cols: 3 },
+    dimensions: {
+      canvas: { width: toPx(152), height: toPx(50.5) },
+      photo: { width: toPx(42), height: toPx(34) },
+      padding: {
+        top: toPx(8.25),
+        bottom: 0,
+        left: toPx(5.5),
+        right: toPx(5.5),
+      },
+      gap: {
+        vertical: 0,
+        horizontal: toPx(1.5),
+      },
+      datetime: {
+        x: toPx(152 - 5.5),
+        y: toPx(50.5 - 8.25) + 24,
+        align: 'right',
+      },
+    },
+  },
+  'square-2/2': {
+    id: 'square-2/2',
+    totalCaptures: 4,
+    gridSize: { rows: 2, cols: 2 },
+    dimensions: {
+      canvas: { width: toPx(101), height: toPx(101) },
+      photo: { width: toPx(44), height: toPx(44) },
+      padding: {
+        top: toPx((101 - 44 * 2 - 4) / 2),
+        bottom: toPx((101 - 44 * 2 - 4) / 2),
+        left: toPx((101 - 44 * 2 - 4) / 2),
+        right: toPx((101 - 44 * 2 - 4) / 2),
+      },
+      gap: {
+        vertical: toPx(2),
+        horizontal: toPx(2),
+      },
+      datetime: {
+        x: toPx(101 - (101 - 44 * 2 - 4) / 2),
+        y: toPx(101 - (101 - 44 * 2 - 4) / 2) + 24,
+        align: 'right',
+      },
+    },
+  },
+  'square-3/3': {
+    id: 'square-3/3',
+    totalCaptures: 9,
+    gridSize: { rows: 3, cols: 3 },
+    dimensions: {
+      canvas: { width: toPx(152), height: toPx(152) },
+      photo: { width: toPx(44), height: toPx(44) },
+      padding: {
+        top: toPx((152 - 44 * 3 - 4 * 2) / 2),
+        bottom: toPx((152 - 44 * 3 - 4 * 2) / 2),
+        left: toPx((152 - 44 * 3 - 4 * 2) / 2),
+        right: toPx((152 - 44 * 3 - 4 * 2) / 2),
+      },
+      gap: {
+        vertical: toPx(2),
+        horizontal: toPx(2),
+      },
+      datetime: {
+        x: toPx(152 - (152 - 44 * 3 - 4 * 2) / 2),
+        y: toPx(152 - (152 - 44 * 3 - 4 * 2) / 2) + 24,
+        align: 'right',
+      },
+    },
+  },
 };
 
 export const frameMap: Record<string, string> = {
@@ -196,4 +313,9 @@ export const frameMap: Record<string, string> = {
   'vertical-2/2': vertical22,
   'vertical-3/2': vertical32,
   'vertical-4/2': vertical42,
+  'horizontal-1/1': horizontal11,
+  'horizontal-2/1': horizontal21,
+  'horizontal-3/1': horizontal31,
+  'square-2/2': square22,
+  'square-3/3': square33,
 };
