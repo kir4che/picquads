@@ -38,12 +38,17 @@ const stickerReducer = (
         activeStickerSrc: action.payload,
         selectedStickerId: null,
       };
-    case 'ADD_STICKER':
+    case 'ADD_STICKER': {
+      const maxZ = state.stickers.reduce(
+        (max, s) => Math.max(max, s.zIndex),
+        0
+      );
       return {
         ...state,
-        stickers: [...state.stickers, action.payload],
+        stickers: [...state.stickers, { ...action.payload, zIndex: maxZ + 1 }],
         activeStickerSrc: null,
       };
+    }
     case 'UPDATE_STICKER':
       return {
         ...state,
@@ -63,12 +68,15 @@ const stickerReducer = (
     case 'SELECT_STICKER': {
       const sticker = state.stickers.find((s) => s.id === action.payload);
       if (!sticker) return state;
+      const maxZ = state.stickers.reduce(
+        (max, s) => Math.max(max, s.zIndex),
+        0
+      );
       return {
         ...state,
-        stickers: [
-          ...state.stickers.filter((s) => s.id !== action.payload),
-          sticker,
-        ],
+        stickers: state.stickers.map((s) =>
+          s.id === action.payload ? { ...s, zIndex: maxZ + 1 } : s
+        ),
         selectedStickerId: action.payload,
         activeStickerSrc: null,
       };

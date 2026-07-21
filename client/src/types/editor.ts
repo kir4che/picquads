@@ -4,6 +4,7 @@ export interface CustomTextConfig {
   position: { x: number; y: number };
   color: string;
   size: number;
+  rotation: number;
 }
 
 export const availableFonts = [

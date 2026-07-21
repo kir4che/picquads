@@ -23,9 +23,6 @@ const Header = () => {
         >
           {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
-        <Link to='/contact' aria-label='Contact'>
-          Contact
-        </Link>
         <Link to='/privacy-policy' aria-label='Privacy Policy'>
           Privacy Policy
         </Link>

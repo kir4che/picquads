@@ -1,11 +1,10 @@
 import {
-  createContext,
   useRef,
   useReducer,
   useCallback,
   useState,
-  ReactNode,
   useMemo,
+  ReactNode,
   useEffect,
 } from 'react';
 
@@ -13,8 +12,11 @@ import {
   CameraState,
   CameraAction,
   CameraType,
-  CameraContextType,
+  CanvasContextValue,
+  CameraStateContextValue,
+  CameraActionContextValue,
 } from '../types/camera';
+import { CanvasCtx, StateCtx, ActionCtx } from './cameraContexts';
 import { Frame } from '../configs/frame';
 import { useAlert } from '../hooks/useAlert';
 import {
@@ -25,6 +27,11 @@ import {
   playShutterSound,
   playCompleteSound,
 } from '../utils/audio';
+
+const PRIMARY_VIDEO_WIDTH = 1335;
+const PRIMARY_VIDEO_HEIGHT = 894;
+const FALLBACK_VIDEO_WIDTH = 841;
+const FALLBACK_VIDEO_HEIGHT = 563;
 
 const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -80,11 +87,16 @@ const cameraReducer = (
         capturedCount: newCapturedCount,
       };
     case 'STOP_CAMERA':
-      return { ...state, status: 'idle', isCameraReady: false };
+      return {
+        ...state,
+        status: 'idle',
+        isCameraReady: false,
+        countdown: 0,
+      };
     case 'START_COUNTDOWN':
       return { ...state, countdown: action.payload };
     case 'UPDATE_COUNTDOWN':
-      return { ...state, countdown: Math.max(0, state.countdown - 1) };
+      return { ...state, countdown: Math.max(0, action.payload) };
     case 'CLEAR_CURRENT_ONLY':
       return { ...state, status: 'idle', capturedImage: null };
     case 'CLEAR_CAPTURED_PHOTO':
@@ -98,7 +110,11 @@ const cameraReducer = (
     case 'COMPLETE':
       return { ...state, status: 'completed' };
     case 'RESET':
-      return initialState;
+      return {
+        ...initialState,
+        isMobileDevice: state.isMobileDevice,
+        facingMode: state.facingMode,
+      };
     case 'CLEAR_ERROR':
       return { ...state, status: 'idle', isCameraReady: false };
     case 'SET_ERROR':
@@ -107,8 +123,6 @@ const cameraReducer = (
       return state;
   }
 };
-
-const CameraContext = createContext<CameraContextType | null>(null);
 
 export const CameraProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cameraReducer, initialState);
@@ -146,48 +160,38 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  // 相機設定
-  const videoConstraints = useMemo(
-    () => ({
-      facingMode: state.facingMode, // 相機方向（前置或後置鏡頭）
-      width: { ideal: 1335 }, // 寬度
-      height: { ideal: 894 }, // 高度
-      aspectRatio: { exact: 1335 / 894 }, // 比例
-    }),
-    [state.facingMode]
-  );
-
-  // 請求相機權限並取得 MediaStream
   const tryGetUserMedia = useCallback(
     async (forcefacingMode?: 'user' | 'environment') => {
+      const facingMode = forcefacingMode || state.facingMode;
       const constraints = {
         video: {
-          ...videoConstraints,
-          facingMode: forcefacingMode || state.facingMode,
+          facingMode,
+          width: { ideal: PRIMARY_VIDEO_WIDTH },
+          height: { ideal: PRIMARY_VIDEO_HEIGHT },
+          aspectRatio: { ideal: PRIMARY_VIDEO_WIDTH / PRIMARY_VIDEO_HEIGHT },
         },
       };
 
       try {
-        // 請求 user 授權，並回傳 MediaStream。
         return await navigator.mediaDevices.getUserMedia(constraints);
       } catch {
-        // 若請求失敗，則改用較低的解析度。
         const fallbackConstraints = {
           video: {
-            facingMode: forcefacingMode || state.facingMode,
-            width: { ideal: 841 },
-            height: { ideal: 563 },
-            aspectRatio: { exact: 1682 / 1126 },
+            facingMode,
+            width: { ideal: FALLBACK_VIDEO_WIDTH },
+            height: { ideal: FALLBACK_VIDEO_HEIGHT },
+            aspectRatio: {
+              ideal: FALLBACK_VIDEO_WIDTH / FALLBACK_VIDEO_HEIGHT,
+            },
           },
         };
         return await navigator.mediaDevices.getUserMedia(fallbackConstraints);
       }
     },
-    [state.facingMode, videoConstraints]
+    [state.facingMode]
   );
 
-  // 初始化相機
-  const initializeCamera = useCallback(
+  const initCamera = useCallback(
     async (forcefacingMode?: 'user' | 'environment') => {
       try {
         stopExistingMediaStream();
@@ -196,11 +200,13 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
         if (videoRef.current) videoRef.current.srcObject = stream;
         dispatch({ type: 'OPEN_CAMERA' });
 
-        // 等待相機初始化完成
-        setTimeout(() => {
-          if (cameraRef.current && mediaStreamRef.current?.active)
+        // 輪詢 cameraRef 是否可用，取代固定 500ms timeout。
+        const pollReady = () => {
+          if (cameraRef.current && mediaStreamRef.current?.active) {
             dispatch({ type: 'SET_CAMERA_READY', payload: true });
-        }, 500);
+          } else setTimeout(pollReady, 100);
+        };
+        setTimeout(pollReady, 100);
 
         setAlert(null);
       } catch (err) {
@@ -214,7 +220,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
               : 'Unable to start camera.';
         dispatch({ type: 'SET_ERROR' });
         setAlert(errorMessage, 'error');
-        lastActionRef.current = () => initializeCamera(forcefacingMode);
+        lastActionRef.current = () => initCamera(forcefacingMode);
       }
     },
     [tryGetUserMedia, stopExistingMediaStream, setAlert]
@@ -230,18 +236,18 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: 'STOP_CAMERA' });
     const newMode = state.facingMode === 'user' ? 'environment' : 'user';
     dispatch({ type: 'SET_FACING_MODE', payload: newMode });
-    initializeCamera(newMode);
-  }, [state.facingMode, initializeCamera]);
+    initCamera(newMode);
+  }, [state.facingMode, initCamera]);
 
   // 開啟相機
   const openCamera = useCallback(async () => {
-    if (state.status === 'idle') await initializeCamera();
-  }, [state.status, initializeCamera]);
+    if (state.status === 'idle') await initCamera();
+  }, [state.status, initCamera]);
 
   // 拍照
   const capturePhoto = useCallback(() => {
     if (!cameraRef.current) {
-      const errorMessage = 'Camera not initialized.';
+      const errorMessage = 'Camera not initd.';
       dispatch({ type: 'SET_ERROR' });
       setAlert(errorMessage, 'error');
       lastActionRef.current = capturePhoto;
@@ -280,13 +286,13 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       const retryAction = lastActionRef.current;
       lastActionRef.current = null;
       retryAction();
-    } else initializeCamera(); // 若沒有上次操作的紀錄，則重新初始化相機。
-  }, [initializeCamera, stopExistingMediaStream]);
+    } else initCamera(); // 若沒有上次操作，則重新初始化相機。
+  }, [initCamera, stopExistingMediaStream]);
 
   // 開始倒數
   const startCountdown = useCallback(
     (duration: number) => {
-      let currentCount = duration; // Ex. 0 | 3 | 5 | 10
+      let currentCount = duration;
       dispatch({ type: 'START_COUNTDOWN', payload: currentCount });
 
       // 清除倒數計時器，避免多個計時器重複計時。
@@ -298,7 +304,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
 
         // 只要倒數計時器還在運行，就要更新。
         if (currentCount >= 0) {
-          dispatch({ type: 'UPDATE_COUNTDOWN' });
+          dispatch({ type: 'UPDATE_COUNTDOWN', payload: currentCount });
           if (currentCount > 0) playCountdownBeep();
           else if (currentCount === 0) playCountdownFinalBeep();
         }
@@ -311,27 +317,24 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
           // 確保相機可用，不可用則重新初始化再拍照。
           if (cameraRef.current && mediaStreamRef.current?.active) {
             setTimeout(() => capturePhoto(), 100);
-          } else
-            initializeCamera().then(() =>
-              setTimeout(() => capturePhoto(), 500)
-            );
+          } else initCamera().then(() => setTimeout(() => capturePhoto(), 500));
         }
       }, 1000);
     },
-    [capturePhoto, initializeCamera]
+    [capturePhoto, initCamera]
   );
 
   // 重拍當前照片
   const retakePhoto = useCallback(() => {
     dispatch({ type: 'CLEAR_CAPTURED_PHOTO' });
-    initializeCamera();
-  }, [initializeCamera]);
+    initCamera();
+  }, [initCamera]);
 
   // 繼續拍攝
   const continueCapture = useCallback(() => {
     dispatch({ type: 'CLEAR_CURRENT_ONLY' });
-    initializeCamera();
-  }, [initializeCamera]);
+    initCamera();
+  }, [initCamera]);
 
   // 完成拍攝
   const completeCapture = useCallback(() => {
@@ -340,13 +343,18 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     playCompleteSound();
   }, [stopExistingMediaStream]);
 
-  // 重置拍攝
+  // 重置相機
   const resetCamera = useCallback(() => {
+    stopExistingMediaStream();
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
     dispatch({ type: 'RESET' });
-    setTimeout(() => openCamera(), 100);
-  }, [openCamera]);
+    setAlert(null);
+  }, [stopExistingMediaStream, setAlert]);
 
-  // 合成畫布
+  // 取得合成畫布
   const getCompositedCanvas = useCallback(() => {
     if (!canvasRef.current || !editorCanvasRef.current) return null;
 
@@ -367,41 +375,68 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     return tempCanvas;
   }, []);
 
-  // 切換靜音
+  // 切換靜音狀態
   const toggleMute = useCallback(() => {
     const newMuted = !muted;
     setMutedState(newMuted);
     setMuted(newMuted);
   }, [muted]);
 
+  const canvasValue = useMemo<CanvasContextValue>(
+    () => ({
+      cameraRef,
+      canvasRef,
+      editorCanvasRef,
+      stickerCanvasRef,
+    }),
+    []
+  );
+
+  const stateValue = useMemo<CameraStateContextValue>(
+    () => ({ state, muted }),
+    [state, muted]
+  );
+
+  const actionValue = useMemo<CameraActionContextValue>(
+    () => ({
+      setFrame,
+      switchCamera,
+      openCamera,
+      capturePhoto,
+      startCountdown,
+      retakePhoto,
+      continueCapture,
+      completeCapture,
+      getCompositedCanvas,
+      resetCamera,
+      retry,
+      toggleMute,
+    }),
+    [
+      setFrame,
+      switchCamera,
+      openCamera,
+      capturePhoto,
+      startCountdown,
+      retakePhoto,
+      continueCapture,
+      completeCapture,
+      getCompositedCanvas,
+      resetCamera,
+      retry,
+      toggleMute,
+    ]
+  );
+
   return (
-    <CameraContext.Provider
-      value={{
-        state,
-        muted,
-        cameraRef,
-        canvasRef,
-        editorCanvasRef,
-        stickerCanvasRef,
-        capturePhoto,
-        setFrame,
-        switchCamera,
-        openCamera,
-        startCountdown,
-        retakePhoto,
-        continueCapture,
-        completeCapture,
-        getCompositedCanvas,
-        resetCamera,
-        retry,
-        toggleMute,
-      }}
-    >
-      <canvas ref={canvasRef} className='hidden' />
-      <canvas ref={stickerCanvasRef} className='hidden' />
-      {children}
-    </CameraContext.Provider>
+    <CanvasCtx.Provider value={canvasValue}>
+      <StateCtx.Provider value={stateValue}>
+        <ActionCtx.Provider value={actionValue}>
+          <canvas ref={canvasRef} className='hidden' />
+          <canvas ref={stickerCanvasRef} className='hidden' />
+          {children}
+        </ActionCtx.Provider>
+      </StateCtx.Provider>
+    </CanvasCtx.Provider>
   );
 };
-
-export default CameraContext;

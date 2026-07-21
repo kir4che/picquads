@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { LoaderCircle, CircleCheckBig } from 'lucide-react';
 
 import { dateFormats, timeFormats } from '../../configs/datetime';
@@ -18,18 +17,15 @@ const DateTimeSelect = ({
   timeFormat,
   setTimeFormat,
 }: DateTimeSelectProps) => {
-  const [showDateTime, setShowDateTime] = useState(false);
+  const showDateTime = Boolean(dateFormat || timeFormat);
 
   const handleCheckboxChange = () => {
-    const newShowDateTime = !showDateTime;
-    setShowDateTime(newShowDateTime);
-
-    if (!newShowDateTime) {
+    if (showDateTime) {
       setDateFormat('');
       setTimeFormat('');
     } else {
-      const defaultDateFormat = dateFormats[0]?.id || '';
-      const defaultTimeFormat = timeFormats[0]?.id || '';
+      const defaultDateFormat = dateFormats[0]?.id ?? '';
+      const defaultTimeFormat = timeFormats[0]?.id ?? '';
 
       setDateFormat(defaultDateFormat);
       setTimeFormat(defaultTimeFormat);
@@ -44,13 +40,12 @@ const DateTimeSelect = ({
 
   return (
     <div>
-      <label className='relative pl-6 text-sm text-gray-600 select-none'>
+      <label className='relative pl-6 text-xs text-gray-600 select-none'>
         <input
           type='checkbox'
           className='peer absolute h-0 w-0 opacity-0'
           checked={showDateTime}
           onChange={handleCheckboxChange}
-          aria-checked={showDateTime}
           aria-label='Show date & time'
         />
         Show Date & Time
@@ -66,19 +61,17 @@ const DateTimeSelect = ({
         />
       </label>
       {showDateTime && (
-        <div className='space-y-2 py-2 text-sm'>
+        <div className='space-y-2 py-2 text-xs'>
           <Select
             value={dateFormat}
             onChange={handleSelectChange(setDateFormat)}
             options={dateFormats}
-            disabled={!showDateTime}
             aria-label='Select date format'
           />
           <Select
             value={timeFormat}
             onChange={handleSelectChange(setTimeFormat)}
             options={timeFormats}
-            disabled={!showDateTime}
             aria-label='Select time format'
           />
         </div>

@@ -11,9 +11,10 @@ interface FiltersProps {
 }
 
 const Filters = ({ filter, onFilterChange }: FiltersProps) => {
-  const [filtersPerPage, setFiltersPerPage] = useState(() =>
-    window.innerWidth < 480 ? 3 : window.innerWidth < 1024 ? 5 : 7
-  );
+  const [filtersPerPage, setFiltersPerPage] = useState(() => {
+    if (typeof window === 'undefined') return 7;
+    return window.innerWidth < 480 ? 3 : window.innerWidth < 1024 ? 5 : 7;
+  });
 
   const filterOptions = useMemo(() => Object.keys(filterPreset), []);
   const { currentPage, totalPages, handlePrevPage, handleNextPage } =

@@ -1,9 +1,39 @@
 import { useContext } from 'react';
 
-import CameraContext from '../contexts/CameraContext';
+import { CanvasCtx, StateCtx, ActionCtx } from '../contexts/cameraContexts';
+import type {
+  CanvasContextValue,
+  CameraStateContextValue,
+  CameraActionContextValue,
+} from '../types/camera';
 
-export const useCamera = () => {
-  const context = useContext(CameraContext);
-  if (!context) throw new Error('useCamera 必須在 CameraProvider 內使用');
+export const useCanvasRefs = (): CanvasContextValue => {
+  const context = useContext(CanvasCtx);
+  if (!context)
+    throw new Error('useCanvasRefs must be used within CameraProvider');
   return context;
+};
+
+export const useCameraState = (): CameraStateContextValue => {
+  const context = useContext(StateCtx);
+  if (!context)
+    throw new Error('useCameraState must be used within CameraProvider');
+  return context;
+};
+
+export const useCameraActions = (): CameraActionContextValue => {
+  const context = useContext(ActionCtx);
+  if (!context)
+    throw new Error('useCameraActions must be used within CameraProvider');
+  return context;
+};
+
+export const useCamera = (): CanvasContextValue &
+  CameraStateContextValue &
+  CameraActionContextValue => {
+  return {
+    ...useCanvasRefs(),
+    ...useCameraState(),
+    ...useCameraActions(),
+  };
 };

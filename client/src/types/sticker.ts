@@ -6,6 +6,7 @@ export type Sticker = {
   width: number;
   height: number;
   rotation: number;
+  zIndex: number;
 };
 
 export type StickerMeta = {

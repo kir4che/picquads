@@ -50,7 +50,7 @@ const QRCode = ({ qrCode, link, isOpen, onClose }: QRCodeProps) => {
             Copy Link
           </a>
           <p className='mt-2 text-center text-xs text-gray-400'>
-            Link & QR Code will expire in 1 hour.
+            Link & QR Code will expire in 30 minutes.
           </p>
         </div>
       </div>

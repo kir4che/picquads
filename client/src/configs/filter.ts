@@ -65,10 +65,11 @@ export const filterPreset = {
     gamma: 1.8,
   }),
   sinCity: () => ({
-    contrast: 100,
-    exposure: 10,
-    channels: { red: 200, green: 10, blue: 10 },
+    contrast: 50,
     saturation: -100,
+    exposure: -10,
+    vignette: 0.5,
+    channels: { red: 5, green: 0, blue: 0 },
   }),
   sunrise: () => ({
     exposure: 3.5,

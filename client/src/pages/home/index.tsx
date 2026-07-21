@@ -6,7 +6,6 @@ import { getFrameList } from '../../utils/frame';
 
 import CameraPreview from '../../components/CameraPreview';
 import PhotoEditor from '../../components/PhotoEditor';
-import PhotoStrip from '../../components/PhotoStrip';
 
 type FrameCategory = 'vertical' | 'horizontal' | 'square';
 
@@ -20,17 +19,6 @@ const Home = () => {
   const { state, setFrame, retry, resetCamera } = useCamera();
   const [activeCategory, setActiveCategory] =
     useState<FrameCategory>('vertical');
-
-  const customTextConfig = useMemo(
-    () => ({
-      text: '',
-      font: 'PlayfairDisplay',
-      position: { x: 0, y: 0 },
-      color: '#FFFFFF',
-      size: 48,
-    }),
-    []
-  );
 
   const filteredFrames = useMemo(
     () => getFrameList().filter((f) => f.id.startsWith(activeCategory)),
@@ -91,15 +79,7 @@ const Home = () => {
       )}
       {state.status === 'completed' && (
         <div className='flex flex-col items-center'>
-          <PhotoEditor>
-            <PhotoStrip
-              frameColor='#000000'
-              filter='none'
-              dateFormat=''
-              timeFormat=''
-              customTextConfig={customTextConfig}
-            />
-          </PhotoEditor>
+          <PhotoEditor />
         </div>
       )}
       {state.status === 'error' && (

@@ -2,27 +2,32 @@ import { useState } from 'react';
 import { saveAs } from 'file-saver';
 import { Loader2, QrCode } from 'lucide-react';
 
-import { useCamera } from '../hooks/useCamera';
+import { useAlert } from '../hooks/useAlert';
+import { useCanvasRefs, useCameraActions } from '../hooks/useCamera';
 
 import QRCode from './QRCode';
 
 const PhotoActions = () => {
-  const { canvasRef, resetCamera, getCompositedCanvas } = useCamera();
+  const { setAlert } = useAlert();
+  const { canvasRef } = useCanvasRefs();
+  const { resetCamera, getCompositedCanvas } = useCameraActions();
 
   const [link, setLink] = useState<string>('');
   const [qrCode, setQrCode] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
+  // 生成 URL、QR Code
   const handleGenerateUrlAndQRCode = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const combinedCanvas = getCompositedCanvas();
+    const sourceCanvas = combinedCanvas || canvasRef.current;
+    if (!sourceCanvas) return;
 
     try {
       setIsUploading(true);
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
+        sourceCanvas.toBlob(
+          (blob: Blob | null) => {
             if (blob) resolve(blob);
             else reject(new Error('Failed to create blob'));
           },
@@ -34,32 +39,35 @@ const PhotoActions = () => {
       const formData = new FormData();
       formData.append('file', blob, 'photo.jpeg');
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
 
-      const data = await response.json();
+      if (!res.ok) throw new Error('Upload failed');
+
+      const data = await res.json();
 
       const { url, qrCode } = data;
       setLink(url);
       setQrCode(qrCode);
       setIsModalOpen(true);
+      setAlert('Photo uploaded successfully!', 'success');
     } catch (err) {
-      console.error('Error during upload:', err);
+      setAlert(
+        err instanceof Error ? err.message : 'Failed to upload photo.',
+        'error'
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
+  // 取得合併好的 canvas（含文字、日期、貼紙）並下載，若沒有則用原始 canvas。
   const handleDownload = () => {
-    // 取得合成畫布
     const combinedCanvas = getCompositedCanvas();
     if (combinedCanvas) {
-      // 將 canvas 轉換為 blob 物件，並指定圖片格式為 'image/jpeg'，質量為 1.0（無損）。
+      // 轉為 blob 物件，並指定圖片格式為 'image/jpeg'，質量為 1.0（無損）。
       combinedCanvas.toBlob(
         (blob: Blob | null) => {
           if (!blob) return;
@@ -70,7 +78,6 @@ const PhotoActions = () => {
         1.0
       );
     } else {
-      // 如果合成方法無法使用，則使用原先的畫布。
       const canvas = canvasRef.current;
       if (canvas) {
         canvas.toBlob(

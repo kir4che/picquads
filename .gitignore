@@ -25,3 +25,6 @@ dist-ssr
 
 # Vite
 **/.env
+
+# TypeScript incremental build cache
+**/tsconfig.tsbuildinfo

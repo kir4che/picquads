@@ -37,7 +37,7 @@ export type CameraAction =
   | { type: 'CAPTURE_PHOTO'; payload: { url: string; timestamp: number } }
   | { type: 'STOP_CAMERA' }
   | { type: 'START_COUNTDOWN'; payload: number }
-  | { type: 'UPDATE_COUNTDOWN' }
+  | { type: 'UPDATE_COUNTDOWN'; payload: number }
   | { type: 'CLEAR_CURRENT_ONLY' }
   | { type: 'CLEAR_CAPTURED_PHOTO' }
   | { type: 'COMPLETE' }
@@ -50,13 +50,19 @@ export interface CameraType extends CameraProps {
   start: () => void;
 }
 
-export interface CameraContextType {
-  state: CameraState;
-  muted: boolean;
+export interface CanvasContextValue {
   cameraRef: React.RefObject<CameraType | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   editorCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   stickerCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+}
+
+export interface CameraStateContextValue {
+  state: CameraState;
+  muted: boolean;
+}
+
+export interface CameraActionContextValue {
   setFrame: (frame: Frame) => void;
   switchCamera: () => void;
   openCamera: () => void;

@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import Moveable, { MoveableManagerInterface, OnRotate } from 'react-moveable';
+import { X } from 'lucide-react';
 
 import { useCamera } from '../../hooks/useCamera';
 import { getFrameDimensions } from '../../utils/frame';
@@ -24,28 +25,38 @@ const DeleteAble = {
         key='delete-button'
         onMouseDown={(e) => e.stopPropagation()}
         onClick={() => moveable.props.onDelete()}
-        className='absolute z-100 flex size-5 -translate-x-1/2 -translate-y-1/2 -translate-z-12 items-center justify-center rounded-full bg-red-500 text-sm text-white'
+        className='absolute z-50 flex size-5 -translate-x-1/2 -translate-y-1/2 -translate-z-12 items-center justify-center rounded-full bg-red-500 text-sm text-white'
         style={{
           transform: `translate(${renderPoses[1][0]}px, ${
             renderPoses[1][1]
           }px)`,
         }}
       >
-        ✕
+        <X size={15} />
       </button>
     );
   },
 };
 
-// 判斷貼圖是否被完全拖曳出照片的邊界之外
+// 判斷貼紙是否完全拖曳出照片的邊界之外
 const isEntirelyOutside = (
   s: { x: number; y: number; width: number; height: number; rotation: number },
   photoW: number,
   photoH: number
 ): boolean => {
-  const θ = (s.rotation * Math.PI) / 180;
+  // 中心點在照片內就不算完全超出
   const cx = s.x + s.width / 2;
   const cy = s.y + s.height / 2;
+  if (cx >= 0 && cx <= photoW && cy >= 0 && cy <= photoH) return false;
+
+  // 1. 未旋轉 → 直接用軸對齊邊界，完全不用三角函數。
+  if (s.rotation === 0)
+    return (
+      s.x + s.width < 0 || s.x > photoW || s.y + s.height < 0 || s.y > photoH
+    );
+
+  // 2. 一般角度 → 計算旋轉後的外接矩形 AABB，判斷是否完全超出邊界。
+  const θ = (s.rotation * Math.PI) / 180;
   const halfW =
     (s.width * Math.abs(Math.cos(θ)) + s.height * Math.abs(Math.sin(θ))) / 2;
   const halfH =
@@ -88,18 +99,28 @@ const StickerLayer = ({
 }: StickerLayerProps) => {
   const { stickerCanvasRef, state } = useCamera();
   const imgRefs = useRef<Map<string, HTMLImageElement | null>>(new Map());
+  // 設定貼紙 img 的 ref，存入 Map 以 id 為 key，方便 Moveable 操控層取得 DOM 節點。
+  const setStickerRef = useCallback(
+    (id: string) => (el: HTMLImageElement | null) => {
+      if (el) imgRefs.current.set(id, el);
+      else imgRefs.current.delete(id);
+    },
+    []
+  );
 
-  // 在組件初次載入時，將隱藏的 stickerCanvasRef 設定為畫面的完整解析度。
+  // 初次載入時將 off-screen canvas（不在螢幕上顯示的）設為照片完整解析度
   useEffect(() => {
     const canvas = stickerCanvasRef.current;
     if (!canvas || !state.frame.id) return;
+
     const dims = getFrameDimensions(state.frame.id);
     if (!dims) return;
+
     canvas.width = dims.canvas.width;
     canvas.height = dims.canvas.height;
   }, [stickerCanvasRef, state.frame.id]);
 
-  // 將目前的貼圖狀態同步畫到隱藏畫布 (stickerCanvasRef) 上，這樣使用者點擊下載時，就能直接拿這個畫布跟照片進行圖層合成。
+  // 當 stickers 改變就重繪隱藏畫布，保持跟畫面顯示同步。
   useEffect(() => {
     const canvas = stickerCanvasRef.current;
     if (!canvas || !displayWidth) return;
@@ -112,7 +133,7 @@ const StickerLayer = ({
 
     stickers.forEach((s) => {
       const img = imgRefs.current.get(s.id);
-      if (!img) return;
+      if (!img || !img.complete) return;
       const cx = (s.x + s.width / 2) * scale;
       const cy = (s.y + s.height / 2) * scale;
       ctx.save();
@@ -129,7 +150,9 @@ const StickerLayer = ({
     });
   }, [stickers, stickerCanvasRef, displayWidth]);
 
-  // 當使用者在貼圖圖層上點擊時，如果有選擇中的貼圖，就會新增一個貼圖到該位置；沒有則清除目前的選取狀態。
+  // 點擊圖層時的兩種行為：
+  // 1. 有 activeStickerSrc（使用者剛從貼紙面板選了款式）→ 在點擊處建立新貼紙
+  // 2. 無 activeStickerSrc → 清除選取（等同點空白處取消選取）
   const handleLayerClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (activeStickerSrc) {
@@ -150,6 +173,7 @@ const StickerLayer = ({
             width: w,
             height: h,
             rotation: 0,
+            zIndex: 0,
           });
         };
       } else onClearSelection();
@@ -157,6 +181,27 @@ const StickerLayer = ({
     [activeStickerSrc, onAddSticker, onClearSelection]
   );
 
+  // 貼紙拖曳/縮放超出照片邊界時自動刪除（onDragEnd / onResizeEnd 中呼叫），傳入更新後的座標，與 sticker 原本資料合併後交給 isEntirelyOutside 判定。
+  const removeIfOutside = useCallback(
+    (
+      sticker: Sticker,
+      updates: Partial<
+        Pick<Sticker, 'x' | 'y' | 'width' | 'height' | 'rotation'>
+      >
+    ) => {
+      if (
+        isEntirelyOutside(
+          { ...sticker, ...updates },
+          displayWidth,
+          displayHeight
+        )
+      )
+        onRemoveSticker(sticker.id);
+    },
+    [displayWidth, displayHeight, onRemoveSticker]
+  );
+
+  // 從 imgRefs Map 取得選取貼紙的 DOM 元素，作為 Moveable 操控目標。
   const selectedTarget = selectedStickerId
     ? (imgRefs.current.get(selectedStickerId) ?? null)
     : null;
@@ -173,31 +218,30 @@ const StickerLayer = ({
         onClick={handleLayerClick}
         style={{ cursor: activeStickerSrc ? 'crosshair' : 'default' }}
       >
-        {stickers.map((s) => (
-          <img
-            key={s.id}
-            ref={(el) => {
-              if (el) imgRefs.current.set(s.id, el);
-              else imgRefs.current.delete(s.id);
-            }}
-            src={s.src}
-            alt='sticker'
-            className='absolute origin-center cursor-pointer select-none'
-            style={{
-              left: s.x,
-              top: s.y,
-              width: s.width,
-              height: s.height,
-              transform: `rotate(${s.rotation}deg)`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectSticker(s.id);
-            }}
-            onContextMenu={(e) => e.preventDefault()}
-            draggable={false}
-          />
-        ))}
+        {[...stickers]
+          .sort((a, b) => a.zIndex - b.zIndex)
+          .map((s) => (
+            <img
+              key={s.id}
+              ref={setStickerRef(s.id)}
+              src={s.src}
+              alt='sticker'
+              className='absolute origin-center cursor-pointer select-none'
+              style={{
+                left: s.x,
+                top: s.y,
+                width: s.width,
+                height: s.height,
+                transform: `rotate(${s.rotation}deg)`,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectSticker(s.id);
+              }}
+              onContextMenu={(e) => e.preventDefault()}
+              draggable={false}
+            />
+          ))}
       </div>
       {selectedTarget && selectedSticker && (
         <Moveable
@@ -212,30 +256,26 @@ const StickerLayer = ({
           rotatable
           keepRatio
           onDrag={({ target, left, top }) => {
+            // 拖曳中即時更新 DOM，不寫 state（避免 re-render 卡頓）。
             target.style.left = `${left}px`;
             target.style.top = `${top}px`;
           }}
-          // 拖曳結束後更新貼圖的位置，若發現貼圖已經完全超出照片範圍，就自動刪除該貼圖。
           onDragEnd={({ lastEvent }) => {
+            // 拖曳結束：將最終 left/top 寫入 state，觸發 canvas 重繪。
             if (!lastEvent || !selectedSticker) return;
             const updates = { x: lastEvent.left, y: lastEvent.top };
             onUpdateSticker(selectedSticker.id, updates);
-            if (
-              isEntirelyOutside(
-                { ...selectedSticker, ...updates },
-                displayWidth,
-                displayHeight
-              )
-            )
-              onRemoveSticker(selectedSticker.id);
+            removeIfOutside(selectedSticker, updates);
           }}
           onResize={({ target, width, height, drag }) => {
+            // 縮放即時更新 DOM：width/height 變更 + 拖曳位移補償
             target.style.width = `${width}px`;
             target.style.height = `${height}px`;
             target.style.left = `${drag.left}px`;
             target.style.top = `${drag.top}px`;
           }}
           onResizeEnd={({ lastEvent }) => {
+            // 縮放結束：寫入最終寬高與座標到 state
             if (!lastEvent || !selectedSticker) return;
             const updates = {
               width: lastEvent.width,
@@ -244,19 +284,14 @@ const StickerLayer = ({
               y: lastEvent.drag.top,
             };
             onUpdateSticker(selectedSticker.id, updates);
-            if (
-              isEntirelyOutside(
-                { ...selectedSticker, ...updates },
-                displayWidth,
-                displayHeight
-              )
-            )
-              onRemoveSticker(selectedSticker.id);
+            removeIfOutside(selectedSticker, updates);
           }}
           onRotate={({ target, transform }) => {
+            // 旋轉即時更新 DOM：transform 包含旋轉角度 + 位移補償
             target.style.transform = transform;
           }}
           onRotateEnd={({ lastEvent }) => {
+            // 旋轉結束：將最終角度寫入 state（以度為單位）
             if (!lastEvent || !selectedSticker) return;
             onUpdateSticker(selectedSticker.id, {
               rotation: (lastEvent as OnRotate).rotation,

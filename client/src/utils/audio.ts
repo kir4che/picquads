@@ -4,18 +4,22 @@ let audioContext: AudioContext | null = null;
 
 const getContext = (): AudioContext => {
   if (!audioContext) audioContext = new AudioContext();
+  // 當 AudioContext 被暫停時，呼叫 resume() 以恢復播放。
+  if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
   return audioContext;
 };
 
+// 判斷是否靜音
 export const isMuted = (): boolean => {
   return localStorage.getItem(MUTE_KEY) === 'true';
 };
 
+// 設定靜音狀態
 export const setMuted = (muted: boolean): void => {
   localStorage.setItem(MUTE_KEY, String(muted));
 };
 
-// 倒數嗶聲
+// 播放倒數嗶聲
 export const playCountdownBeep = () => {
   if (isMuted()) return;
 
@@ -42,7 +46,7 @@ export const playCountdownBeep = () => {
   }
 };
 
-// 倒數最後一聲（高頻嗶聲）
+// 播放倒數最後一聲（高頻嗶聲）
 export const playCountdownFinalBeep = () => {
   if (isMuted()) return;
 
@@ -70,7 +74,7 @@ export const playCountdownFinalBeep = () => {
   }
 };
 
-// 快門聲（包含三層聲音）
+// 播放快門聲（包含三層聲音）
 export const playShutterSound = () => {
   if (isMuted()) return;
 
@@ -152,7 +156,7 @@ export const playShutterSound = () => {
   }
 };
 
-// 完成音
+// 播放完成音
 export const playCompleteSound = () => {
   if (isMuted()) return;
 

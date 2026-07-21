@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react';
+import { useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
@@ -7,9 +7,10 @@ dayjs.extend(localizedFormat);
 import { FilterType, filterPreset } from '../configs/filter';
 import { dateFormats, timeFormats } from '../configs/datetime';
 import { CustomTextConfig } from '../types/editor';
+import { FrameConfig } from '../configs/frame';
 import { useAlert } from '../hooks/useAlert';
 import { useCamera } from '../hooks/useCamera';
-import { getFrameConfig, getFrameDimensions } from '../utils/frame';
+import { getFrameConfig } from '../utils/frame';
 import { applyFilter } from '../utils/caman';
 
 interface PhotoStripProps {
@@ -18,11 +19,12 @@ interface PhotoStripProps {
   dateFormat: string;
   timeFormat: string;
   customTextConfig: CustomTextConfig;
+  loadedImages: LoadedImage[];
+  dimensions: FrameConfig['dimensions'] | null;
 }
 
-interface LoadedImage {
-  img: HTMLImageElement;
-  facingMode: 'user' | 'environment';
+export interface LoadedImage {
+  img: HTMLImageElement | HTMLCanvasElement;
 }
 
 interface ImageDimensions {
@@ -37,7 +39,8 @@ interface RenderPhotoProps {
   imageData: LoadedImage;
   x: number;
   y: number;
-  shouldFlipHori: boolean;
+  photoCanvas: HTMLCanvasElement; // 暫存畫布
+  filterCanvas: HTMLCanvasElement; // 濾鏡畫布
 }
 
 const PhotoStrip = memo(
@@ -47,22 +50,23 @@ const PhotoStrip = memo(
     dateFormat,
     timeFormat,
     customTextConfig,
+    loadedImages,
+    dimensions,
   }: PhotoStripProps) => {
     const { setAlert } = useAlert();
     const { state, canvasRef, editorCanvasRef } = useCamera();
-    const { frame, isMobileDevice, capturedImages: images } = state;
+    const { frame } = state;
 
-    const isRenderingRef = useRef(false); // 用於避免多次執行 renderCanvas
-    const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null); // 用於在記憶體中預先處理照片
+    const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null); // 用於合成照片的 offscreen canvas
+    const renderAbortRef = useRef<AbortController | null>(null); // 用於取消正在進行的渲染流程
+    const renderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // 用於 debounce 渲染，避免短時間內多次渲染。
+    const filterRef = useRef(filter); // 用於在 debounce 期間保持最新的 filter 值，避免在 processPhoto 中拿到舊值。
+    filterRef.current = filter;
 
-    const [loadedImages, setLoadedImages] = useState<LoadedImage[]>([]); // 儲存已載入的照片
-    const [fontLoaded, setFontLoaded] = useState<boolean>(false); // 追蹤字體是否載入完成
-
-    // 取得邊框的設定及尺寸
+    // 從 frame id 查詢邊框設定（格子數、邊距等），只在 frame 切換時重新計算。
     const frameConfig = useMemo(() => getFrameConfig(frame.id), [frame.id]);
-    const dimensions = useMemo(() => getFrameDimensions(frame.id), [frame.id]);
 
-    // 計算照片的縮放尺寸及位置，確保不會超出邊框範圍。
+    // 計算照片在相框內格中的尺寸與位置，確保照片能以 cover 模式填滿格子。
     const calculateImageDimensions = useCallback(
       (
         imgWidth: number,
@@ -84,25 +88,25 @@ const PhotoStrip = memo(
       []
     );
 
-    // 創建臨時的 Canvas 來處理照片繪製
-    const createTempCanvas = useCallback(
-      (width: number, height: number): HTMLCanvasElement | null => {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        return canvas;
-      },
-      []
-    );
+    const createTempCanvas = (
+      width: number,
+      height: number
+    ): HTMLCanvasElement => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      return canvas;
+    };
 
-    // 處理單張照片：縮放、翻轉、應用濾鏡並繪製到主 Canvas。
+    // 處理單張照片的完整流程：縮放 → 套用濾鏡 → 繪製到主 Canvas
     const processPhoto = useCallback(
       async ({
         ctx,
         imageData,
         x,
         y,
-        shouldFlipHori,
+        photoCanvas,
+        filterCanvas,
       }: RenderPhotoProps): Promise<void> => {
         if (!dimensions?.photo) {
           setAlert('Unable to get photo dimensions.', 'error');
@@ -112,6 +116,7 @@ const PhotoStrip = memo(
         const { width: targetWidth, height: targetHeight } = dimensions.photo;
         const { img } = imageData;
 
+        // 將原始照片縮放到相框內格的尺寸，並計算置中偏移量。
         const imageDimensions = calculateImageDimensions(
           img.width,
           img.height,
@@ -119,141 +124,99 @@ const PhotoStrip = memo(
           targetHeight
         );
 
-        // 創建臨時的 Canvas 來繪製照片
-        const photoCanvas = createTempCanvas(targetWidth, targetHeight);
-        if (!photoCanvas) {
-          setAlert('Unable to create photo canvas.', 'error');
-          return;
-        }
+        // 確保兩個暫存 canvas 的尺寸符合此照片的目標大小
+        photoCanvas.width = targetWidth;
+        photoCanvas.height = targetHeight;
+        filterCanvas.width = targetWidth;
+        filterCanvas.height = targetHeight;
 
-        // 取得照片的 Canvas Rendering Context 以進行繪圖操作
+        // 1. 在 photoCanvas 上繪製原始照片（縮放 + 置中）
         const photoCtx = photoCanvas.getContext('2d');
         if (!photoCtx) {
           setAlert('Unable to get photo.', 'error');
           return;
         }
 
-        photoCtx.save(); // 儲存當前初始狀態，以便後續可以恢復。
-
-        // 若需要水平翻轉圖片
-        if (shouldFlipHori) {
-          photoCtx.translate(targetWidth, 0);
-          photoCtx.scale(-1, 1);
-        }
-
-        // 將照片以正確的縮放比例及位置繪製到臨時 Canvas
+        // 將原始照片以 cover 模式繪製到 photoCanvas
         photoCtx.drawImage(
           img,
           0,
           0,
           img.width,
           img.height,
-          imageDimensions.offsetX,
-          imageDimensions.offsetY,
+          imageDimensions.offsetX, // 負值 = 左邊被裁切，達到置中效果。
+          imageDimensions.offsetY, // 負值 = 上方被裁切
           imageDimensions.width,
           imageDimensions.height
         );
 
-        photoCtx.restore(); // 恢復初始狀態，避免影響到其他照片的繪製。
-
-        // 創建臨時的 Canvas 來處理濾鏡
-        const filterCanvas = createTempCanvas(targetWidth, targetHeight);
-        if (!filterCanvas) {
-          setAlert('Unable to create filter canvas.', 'error');
-          return;
-        }
-
+        // 2. 複製到 filterCanvas 準備套濾鏡
         const filterCtx = filterCanvas.getContext('2d');
         if (!filterCtx) {
           setAlert('Unable to get filter.', 'error');
           return;
         }
 
-        filterCtx.drawImage(photoCanvas, 0, 0); // 將以處理的照片繪製到濾鏡 Canvas 上
+        filterCtx.drawImage(photoCanvas, 0, 0);
 
+        // 3. 套用 Caman 濾鏡
+        // 用 filterRef.current 而非 filter，確保 debounce 期間拿到的是最新值。
         try {
-          await applyFilter(filterCanvas, filterPreset[filter]()); // 套用濾鏡
-          ctx.drawImage(filterCanvas, x, y); // 繪製濾鏡後的照片到主 Canvas
+          await applyFilter(filterCanvas, filterPreset[filterRef.current]());
+          // 4. 繪製到最終 offscreen canvas
+          ctx.drawImage(filterCanvas, x, y);
         } catch (err) {
+          // 套用失敗時，繪製未經濾鏡處理的原始照片。
           setAlert(
             `Failed to apply filter: ${err instanceof Error ? err.message : 'Unknown error'}`,
             'error'
           );
-          ctx.drawImage(photoCanvas, x, y); // 若濾鏡套用失敗，則繪製未處理的照片到主 Canvas。
+          ctx.drawImage(photoCanvas, x, y);
         }
       },
-      [
-        dimensions?.photo,
-        filter,
-        calculateImageDimensions,
-        setAlert,
-        createTempCanvas,
-      ]
+      [dimensions?.photo, calculateImageDimensions, setAlert]
     );
 
-    // 字體載入
-    useEffect(() => {
-      const loadFont = async () => {
-        try {
-          // 同時載入日期與時間的 DigitalDream 字體和 custom text 的字體
-          await Promise.all([
-            document.fonts.load('24px "DigitalDream"'),
-            document.fonts.load(
-              `${customTextConfig.size}px "${customTextConfig.font}"`
-            ),
-          ]);
-          setFontLoaded(true);
-          // 強制重新渲染，確保有正確載入。
-          if (canvasRef.current && dimensions)
-            requestAnimationFrame(() => renderCanvas());
-        } catch (err) {
-          setAlert(
-            `Failed to load font: ${err instanceof Error ? err.message : 'Unknown error'}`,
-            'error'
-          );
-          setFontLoaded(false);
-        }
-      };
-
-      loadFont();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [customTextConfig.font]);
-
-    // 渲染自定義文字
+    // 在 editorCanvas 上繪製自訂文字
     const renderCustomText = useCallback(
       (ctx: CanvasRenderingContext2D) => {
-        if (!dimensions?.canvas || !customTextConfig.text || !fontLoaded)
-          return;
+        if (!dimensions?.canvas || !customTextConfig.text) return;
 
-        const { text, color, size, font, position } = customTextConfig;
+        const { text, color, size, font, position, rotation } =
+          customTextConfig;
 
         ctx.save();
 
-        // 使用 imageSmoothingEnabled 提升渲染品質
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        ctx.font = `${size}px "${font}"`;
+        ctx.font = `${size}px "${font}", sans-serif`;
         ctx.fillStyle = color;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.letterSpacing = '3px';
 
-        ctx.fillText(
-          text,
-          dimensions.padding.left + position.x,
-          dimensions.canvas.height - dimensions.padding.top - position.y
-        );
+        const textX = dimensions.padding.left + position.x;
+        const textY =
+          dimensions.canvas.height - dimensions.padding.top - position.y;
+
+        if (rotation) {
+          const textWidth = ctx.measureText(text).width;
+          const textHeight = size;
+          ctx.translate(textX + textWidth / 2, textY + textHeight / 2);
+          ctx.rotate((rotation * Math.PI) / 180);
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, 0, 0);
+        } else {
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(text, textX, textY);
+        }
 
         ctx.restore();
       },
-      [dimensions, customTextConfig, fontLoaded]
+      [dimensions, customTextConfig]
     );
 
-    // 渲染日期、時間
+    // 在 editorCanvas 上繪製日期和時間文字
     const renderDateTime = useCallback(
       (ctx: CanvasRenderingContext2D) => {
-        if (!dimensions?.canvas || !fontLoaded) return;
+        if (!dimensions?.canvas) return;
 
         const now = dayjs();
         const selectedDateFormat = dateFormats.find(
@@ -262,26 +225,22 @@ const PhotoStrip = memo(
         const selectedTimeFormat = timeFormats.find(
           (tf) => tf.id === timeFormat
         );
+        const dateText = selectedDateFormat?.format
+          ? now.format(selectedDateFormat.format)
+          : '';
+        const timeText = selectedTimeFormat?.format
+          ? now.format(selectedTimeFormat.format)
+          : '';
+        const dateTimeText = [dateText, timeText].filter(Boolean).join(' ');
 
-        let dateTimeText = '';
-
-        if (selectedDateFormat?.format && dateFormat !== '')
-          dateTimeText += now.format(selectedDateFormat.format);
-
-        if (selectedTimeFormat?.format && timeFormat !== '') {
-          if (dateTimeText) dateTimeText += ' ';
-          dateTimeText += now.format(selectedTimeFormat.format);
-        }
-
+        // 有文字且 frame config 有定義日期繪製位置時才畫
         if (dateTimeText && dimensions.datetime) {
           ctx.save();
 
           ctx.textBaseline = 'middle';
           ctx.textAlign = dimensions.datetime.align;
-          ctx.font = '24px "DigitalDream"';
+          ctx.font = '24px "DigitalDream", monospace';
           ctx.fillStyle = '#FFB867';
-          ctx.letterSpacing = '2px';
-
           ctx.shadowColor = '#FFD4A480';
           ctx.shadowBlur = 2;
           ctx.shadowOffsetX = 1;
@@ -296,43 +255,65 @@ const PhotoStrip = memo(
           ctx.restore();
         }
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [dateFormat, timeFormat]
+      [dateFormat, timeFormat, dimensions]
     );
 
-    // 渲染照片到整個拍貼畫布
+    // 取消正在進行中的渲染
+    const cancelRender = useCallback(() => {
+      renderAbortRef.current?.abort(); // 讓進行中的 processPhoto 提前跳過
+      if (renderTimeoutRef.current) clearTimeout(renderTimeoutRef.current);
+      renderAbortRef.current = null;
+      renderTimeoutRef.current = null;
+    }, []);
+
+    // 計算每張照片在相框內格中的位置（左上角座標）
+    const getPhotoPosition = useCallback(
+      (index: number) => {
+        const colCount = frameConfig?.gridSize.cols ?? 1;
+        const rowIndex = Math.floor(index / colCount);
+        const colIndex = index % colCount;
+
+        return {
+          x:
+            dimensions!.padding.left +
+            colIndex * (dimensions!.photo.width + dimensions!.gap.horizontal),
+          y:
+            dimensions!.padding.top +
+            rowIndex * (dimensions!.photo.height + dimensions!.gap.vertical),
+        };
+      },
+      [dimensions, frameConfig?.gridSize.cols]
+    );
+
+    // 主要 Canvas 渲染流程
     const renderCanvas = useCallback(async () => {
-      if (
-        !canvasRef.current ||
-        !editorCanvasRef.current ||
-        !dimensions?.canvas ||
-        isRenderingRef.current
-      )
+      cancelRender();
+
+      if (!canvasRef.current || !editorCanvasRef.current || !dimensions?.canvas)
         return;
 
-      isRenderingRef.current = true;
       const abortController = new AbortController();
+      renderAbortRef.current = abortController;
 
-      // 使用 debounce 避免頻繁渲染
+      // 等待 16ms 看有沒有新的渲染請求進來
       const debounceTimeout = setTimeout(async () => {
-        if (!offscreenCanvasRef.current) {
+        renderTimeoutRef.current = null; // timeout 已觸發，清除 timer 參考。
+
+        // 初始化 offscreen canvas（只做一次，後續重複使用）
+        if (!offscreenCanvasRef.current)
           offscreenCanvasRef.current = document.createElement('canvas');
-          offscreenCanvasRef.current.width = dimensions.canvas.width;
-          offscreenCanvasRef.current.height = dimensions.canvas.height;
-        }
+        offscreenCanvasRef.current.width = dimensions.canvas.width;
+        offscreenCanvasRef.current.height = dimensions.canvas.height;
 
         const offscreenCtx = offscreenCanvasRef.current.getContext('2d', {
-          alpha: false, // 禁用 alpha 以提升效能
-          willReadFrequently: false, // 告知瀏覽器不會頻繁讀取像素
+          alpha: false, // 不需要透明通道
+          willReadFrequently: false, // 不會頻繁讀取像素
         });
 
-        if (!offscreenCtx) {
-          isRenderingRef.current = false;
-          return;
-        }
+        if (!offscreenCtx) return;
 
         try {
-          // 先填充拍貼邊框顏色
+          // 1. 填充邊框背景
           offscreenCtx.fillStyle = frameColor;
           offscreenCtx.fillRect(
             0,
@@ -341,69 +322,66 @@ const PhotoStrip = memo(
             dimensions.canvas.height
           );
 
-          // 只有在有照片時才繪製照片
+          // 2. 逐張繪製照片
           if (loadedImages.length > 0) {
+            const { width: pw, height: ph } = dimensions.photo;
+            const maxPhotos =
+              (frameConfig?.gridSize.rows ?? 0) *
+              (frameConfig?.gridSize.cols ?? 0);
+
+            // 預先配置每張照片需要的暫存 canvas
+            const photoCanvases = loadedImages.map(() =>
+              createTempCanvas(pw, ph)
+            );
+            const filterCanvases = loadedImages.map(() =>
+              createTempCanvas(pw, ph)
+            );
+
+            // 並行處理所有照片（最多 frame 格子數）
             await Promise.all(
-              loadedImages
-                .slice(
-                  0,
-                  (frameConfig?.gridSize.rows ?? 0) *
-                    (frameConfig?.gridSize.cols ?? 0)
-                )
-                .map(async (imageData, i) => {
-                  if (abortController.signal.aborted) return;
+              loadedImages.slice(0, maxPhotos).map(async (imageData, i) => {
+                // 若在處理過程中被取消，跳過後續繪製。
+                if (abortController.signal.aborted) return;
 
-                  return new Promise<void>((resolve) => {
-                    requestAnimationFrame(async () => {
-                      const rowIndex = Math.floor(
-                        i / (frameConfig?.gridSize.cols ?? 1)
-                      );
-                      const colIndex = i % (frameConfig?.gridSize.cols ?? 1);
+                // 將照片處理排入 animation frame，延後執行，但不保證每張照片分散到不同幀。
+                return new Promise<void>((resolve) => {
+                  requestAnimationFrame(async () => {
+                    const { x, y } = getPhotoPosition(i);
 
-                      const x =
-                        dimensions.padding.left +
-                        colIndex *
-                          (dimensions.photo.width + dimensions.gap.horizontal);
-                      const y =
-                        dimensions.padding.top +
-                        rowIndex *
-                          (dimensions.photo.height + dimensions.gap.vertical);
-
-                      const shouldFlipHori =
-                        (!isMobileDevice && imageData.facingMode === 'user') ||
-                        (isMobileDevice && imageData.facingMode === 'user');
-
-                      await processPhoto({
-                        ctx: offscreenCtx,
-                        imageData,
-                        x,
-                        y,
-                        shouldFlipHori,
-                      });
-                      resolve();
+                    await processPhoto({
+                      ctx: offscreenCtx,
+                      imageData,
+                      x,
+                      y,
+                      photoCanvas: photoCanvases[i],
+                      filterCanvas: filterCanvases[i],
                     });
+                    resolve();
                   });
-                })
+                });
+              })
             );
           }
 
-          // 在照片繪製完成後，將結果複製到主畫布
-          const ctx = canvasRef?.current?.getContext('2d', {
+          // 3. 複製到主顯示 canvas
+          const ctx = canvasRef.current?.getContext('2d', {
             alpha: false,
             willReadFrequently: false,
           });
 
-          if (ctx) {
+          if (ctx)
             requestAnimationFrame(() => {
               if (abortController.signal.aborted) return;
+              // 設定 canvas 尺寸，否則 drawImage 會縮放。
               canvasRef.current!.width = dimensions.canvas.width;
               canvasRef.current!.height = dimensions.canvas.height;
+              // 將 offscreen canvas 的完整內容複製到顯示用 canvas
               ctx.drawImage(offscreenCanvasRef.current!, 0, 0);
             });
-          }
 
+          // 4. 疊加文字與日期（在 editorCanvas 上）
           const editorCtx = editorCanvasRef.current?.getContext('2d');
-          if (editorCtx && editorCanvasRef.current !== null) {
+          if (editorCtx)
             requestAnimationFrame(() => {
               if (abortController.signal.aborted) return;
               editorCanvasRef.current!.width = dimensions.canvas.width;
@@ -411,127 +389,78 @@ const PhotoStrip = memo(
               renderCustomText(editorCtx);
               renderDateTime(editorCtx);
             });
-          }
         } catch (err) {
           setAlert(
             `Failed to render canvas: ${err instanceof Error ? err.message : 'Unknown error'}`,
             'error'
           );
-        } finally {
-          if (!abortController.signal.aborted) isRenderingRef.current = false;
         }
-      }, 16); // 約 60fps 的更新頻率
+        renderTimeoutRef.current = null;
+      }, 16); // 16ms ≈ 60fps 的更新頻率，讓多個快速變化合併成一次渲染。
 
-      return () => {
-        clearTimeout(debounceTimeout);
-        abortController.abort();
-        isRenderingRef.current = false;
-      };
+      // 儲存 debounce timer ref 給 cancelRender 用
+      renderTimeoutRef.current = debounceTimeout;
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       canvasRef,
       editorCanvasRef,
-      images,
       loadedImages,
       dimensions,
       frameConfig,
       frameColor,
+      getPhotoPosition,
       processPhoto,
       renderCustomText,
       renderDateTime,
     ]);
 
+    // 字體載入（custom text、date time）
     useEffect(() => {
-      let isMounted = true; // 避免在組件 unmounted 執行 setState
+      const loadFont = async () => {
+        const results = await Promise.allSettled([
+          document.fonts.load('24px "DigitalDream"'),
+          document.fonts.load(
+            `${customTextConfig.size}px "${customTextConfig.font}"`
+          ),
+        ]);
 
-      const loadImages = async () => {
-        if (images.length === 0) {
-          // 若沒有照片，則清空已加載的照片。
-          if (isMounted) setLoadedImages([]);
-          return;
-        }
+        const failedCount = results.filter(
+          (result) => result.status === 'rejected'
+        ).length;
 
-        try {
-          // 並行載入所有照片
-          const loaded = await Promise.all(
-            images.map(
-              (image) =>
-                new Promise<LoadedImage>((resolve, reject) => {
-                  const img = new Image();
-                  img.onload = () =>
-                    resolve({ img, facingMode: image.facingMode });
-                  img.onerror = () =>
-                    reject(new Error(`Failed to load image: ${image.url}`));
-                  img.src = image.url;
-                })
-            )
-          );
+        if (failedCount === results.length)
+          setAlert('Failed to load fonts, using fallback fonts.', 'error');
+        else if (failedCount > 0)
+          setAlert('Some fonts failed to load, using fallback fonts.', 'error');
 
-          // 確保組件 mounted 才更新狀態，避免非同步更新。
-          if (isMounted) setLoadedImages(loaded);
-        } catch (err) {
-          setAlert(
-            `Failed to load images: ${err instanceof Error ? err.message : 'Unknown error'}`,
-            'error'
-          );
-        }
+        // 載入完成後重繪一次，讓已成功下載的字體套回畫面。
+        if (canvasRef.current && dimensions)
+          requestAnimationFrame(() => renderCanvas());
       };
 
-      loadImages();
-      return () => {
-        isMounted = false;
-      };
+      loadFont();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [images, setLoadedImages]);
+    }, [customTextConfig.font]);
 
-    // 當拍貼畫布及尺寸設定有效，渲染照片到畫布上。
     useEffect(() => {
-      if (!canvasRef.current || !dimensions || !fontLoaded) return;
-
-      renderCanvas(); // 更新畫布
-
-      return () => {
-        if (isRenderingRef.current) isRenderingRef.current = false;
-      };
+      if (!canvasRef.current || !dimensions) return;
+      renderCanvas();
+      return () => cancelRender();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-      canvasRef,
-      fontLoaded,
-      customTextConfig,
-      dateFormat,
-      timeFormat,
-      frameColor,
-      renderCanvas,
-    ]);
-
-    const canvasContainerStyle = useMemo(
-      () => ({
-        width: dimensions?.canvas
-          ? `${dimensions.canvas.width * 0.25}px`
-          : 'auto',
-        height: dimensions?.canvas
-          ? `${dimensions.canvas.height * 0.25}px`
-          : 'auto',
-        position: 'relative' as const,
-      }),
-      [dimensions?.canvas]
-    );
+    }, [filter, renderCanvas, cancelRender, dimensions]);
 
     if (!dimensions) return null;
 
     return (
-      <div
-        className='flex flex-col items-center shadow-md'
-        style={canvasContainerStyle}
-      >
+      <div className='relative flex size-full flex-col items-center shadow-md'>
         <canvas
           ref={canvasRef}
-          className='absolute top-0 left-0 h-full w-full'
+          className='absolute top-0 left-0 size-full'
           aria-label='Photo strip'
         />
         <canvas
           ref={editorCanvasRef}
-          className='absolute top-0 left-0 z-1 h-full w-full'
+          className='absolute top-0 left-0 z-1 size-full'
           aria-label='Editor overlay'
         />
       </div>
