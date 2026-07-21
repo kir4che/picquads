@@ -220,6 +220,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
               : 'Unable to start camera.';
         dispatch({ type: 'SET_ERROR' });
         setAlert(errorMessage, 'error');
+        // eslint-disable-next-line react-hooks/immutability
         lastActionRef.current = () => initCamera(forcefacingMode);
       }
     },
@@ -250,6 +251,8 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = 'Camera not initd.';
       dispatch({ type: 'SET_ERROR' });
       setAlert(errorMessage, 'error');
+      // retry pattern：callback 把自身存進 ref 供稍後重試，屬刻意自我引用。
+      // eslint-disable-next-line react-hooks/immutability
       lastActionRef.current = capturePhoto;
       return;
     }

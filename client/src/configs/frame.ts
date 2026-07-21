@@ -1,14 +1,14 @@
-import vertical11 from '../assets/images/vertical-1:1.png';
-import vertical21 from '../assets/images/vertical-2:1.png';
-import vertical22 from '../assets/images/vertical-2:2.png';
-import vertical32 from '../assets/images/vertical-3:1.png';
-import vertical41 from '../assets/images/vertical-4:1.png';
-import vertical42 from '../assets/images/vertical-4:2.png';
-import horizontal11 from '../assets/images/horizontal-1:1.svg';
-import horizontal21 from '../assets/images/horizontal-2:1.svg';
-import horizontal31 from '../assets/images/horizontal-3:1.svg';
-import square22 from '../assets/images/square-2:2.svg';
-import square33 from '../assets/images/square-3:3.svg';
+import vertical11 from '../assets/images/vertical-1x1.png';
+import vertical21 from '../assets/images/vertical-2x1.png';
+import vertical22 from '../assets/images/vertical-2x2.png';
+import vertical32 from '../assets/images/vertical-3x1.png';
+import vertical41 from '../assets/images/vertical-4x1.png';
+import vertical42 from '../assets/images/vertical-4x2.png';
+import horizontal11 from '../assets/images/horizontal-1x1.svg';
+import horizontal21 from '../assets/images/horizontal-2x1.svg';
+import horizontal31 from '../assets/images/horizontal-3x1.svg';
+import square22 from '../assets/images/square-2x2.svg';
+import square33 from '../assets/images/square-3x3.svg';
 
 export interface Frame {
   id: string;
