@@ -6,6 +6,8 @@ import {
   CameraActionContextValue,
 } from '../types/camera';
 
-export const CanvasCtx = createContext<CanvasContextValue | null>(null);
-export const StateCtx = createContext<CameraStateContextValue | null>(null);
-export const ActionCtx = createContext<CameraActionContextValue | null>(null);
+export const CanvasContext = createContext<CanvasContextValue | null>(null);
+export const StateContext = createContext<CameraStateContextValue | null>(null);
+export const ActionContext = createContext<CameraActionContextValue | null>(
+  null
+);

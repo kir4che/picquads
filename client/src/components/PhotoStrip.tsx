@@ -131,14 +131,14 @@ const PhotoStrip = memo(
         filterCanvas.height = targetHeight;
 
         // 1. 在 photoCanvas 上繪製原始照片（縮放 + 置中）
-        const photoCtx = photoCanvas.getContext('2d');
-        if (!photoCtx) {
+        const photoContext = photoCanvas.getContext('2d');
+        if (!photoContext) {
           setAlert('Unable to get photo.', 'error');
           return;
         }
 
         // 將原始照片以 cover 模式繪製到 photoCanvas
-        photoCtx.drawImage(
+        photoContext.drawImage(
           img,
           0,
           0,
@@ -151,13 +151,13 @@ const PhotoStrip = memo(
         );
 
         // 2. 複製到 filterCanvas 準備套濾鏡
-        const filterCtx = filterCanvas.getContext('2d');
-        if (!filterCtx) {
+        const filterContext = filterCanvas.getContext('2d');
+        if (!filterContext) {
           setAlert('Unable to get filter.', 'error');
           return;
         }
 
-        filterCtx.drawImage(photoCanvas, 0, 0);
+        filterContext.drawImage(photoCanvas, 0, 0);
 
         // 3. 套用 Caman 濾鏡
         // 用 filterRef.current 而非 filter，確保 debounce 期間拿到的是最新值。
@@ -305,17 +305,17 @@ const PhotoStrip = memo(
         offscreenCanvasRef.current.width = dimensions.canvas.width;
         offscreenCanvasRef.current.height = dimensions.canvas.height;
 
-        const offscreenCtx = offscreenCanvasRef.current.getContext('2d', {
+        const offscreenContext = offscreenCanvasRef.current.getContext('2d', {
           alpha: false, // 不需要透明通道
           willReadFrequently: false, // 不會頻繁讀取像素
         });
 
-        if (!offscreenCtx) return;
+        if (!offscreenContext) return;
 
         try {
           // 1. 填充邊框背景
-          offscreenCtx.fillStyle = frameColor;
-          offscreenCtx.fillRect(
+          offscreenContext.fillStyle = frameColor;
+          offscreenContext.fillRect(
             0,
             0,
             dimensions.canvas.width,
@@ -349,7 +349,7 @@ const PhotoStrip = memo(
                     const { x, y } = getPhotoPosition(i);
 
                     await processPhoto({
-                      ctx: offscreenCtx,
+                      ctx: offscreenContext,
                       imageData,
                       x,
                       y,
@@ -380,14 +380,14 @@ const PhotoStrip = memo(
             });
 
           // 4. 疊加文字與日期（在 editorCanvas 上）
-          const editorCtx = editorCanvasRef.current?.getContext('2d');
-          if (editorCtx)
+          const editorContext = editorCanvasRef.current?.getContext('2d');
+          if (editorContext)
             requestAnimationFrame(() => {
               if (abortController.signal.aborted) return;
               editorCanvasRef.current!.width = dimensions.canvas.width;
               editorCanvasRef.current!.height = dimensions.canvas.height;
-              renderCustomText(editorCtx);
-              renderDateTime(editorCtx);
+              renderCustomText(editorContext);
+              renderDateTime(editorContext);
             });
         } catch (err) {
           setAlert(

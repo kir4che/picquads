@@ -203,7 +203,7 @@ const StickerLayer = ({
 
   // 從 imgRefs Map 取得選取貼紙的 DOM 元素，作為 Moveable 操控目標。
   const selectedTarget = selectedStickerId
-    ? (imgRefs.current.get(selectedStickerId) ?? null)
+    ? (imgRefs.current.get(selectedStickerId) ?? null) // eslint-disable-line react-hooks/refs
     : null;
 
   const selectedSticker = stickers.find((s) => s.id === selectedStickerId);

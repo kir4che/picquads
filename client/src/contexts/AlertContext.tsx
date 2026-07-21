@@ -24,9 +24,7 @@ export const AlertProvider = ({ children }: AlertProviderProps) => {
   };
 
   return (
-    <AlertContext.Provider value={{ message, type, setAlert }}>
-      {children}
-    </AlertContext.Provider>
+    <AlertContext value={{ message, type, setAlert }}>{children}</AlertContext>
   );
 };
 

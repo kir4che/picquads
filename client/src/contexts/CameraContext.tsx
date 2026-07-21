@@ -16,7 +16,7 @@ import {
   CameraStateContextValue,
   CameraActionContextValue,
 } from '../types/camera';
-import { CanvasCtx, StateCtx, ActionCtx } from './cameraContexts';
+import { CanvasContext, StateContext, ActionContext } from './cameraContexts';
 import { Frame } from '../configs/frame';
 import { useAlert } from '../hooks/useAlert';
 import {
@@ -220,6 +220,7 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
               : 'Unable to start camera.';
         dispatch({ type: 'SET_ERROR' });
         setAlert(errorMessage, 'error');
+        // eslint-disable-next-line react-hooks/immutability
         lastActionRef.current = () => initCamera(forcefacingMode);
       }
     },
@@ -250,6 +251,8 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = 'Camera not initd.';
       dispatch({ type: 'SET_ERROR' });
       setAlert(errorMessage, 'error');
+      // retry pattern：callback 把自身存進 ref 供稍後重試，屬刻意自我引用。
+      // eslint-disable-next-line react-hooks/immutability
       lastActionRef.current = capturePhoto;
       return;
     }
@@ -362,15 +365,15 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
     const mainCanvas = canvasRef.current;
     tempCanvas.width = mainCanvas.width;
     tempCanvas.height = mainCanvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
+    const tempContext = tempCanvas.getContext('2d');
 
-    if (!tempCtx) return null;
+    if (!tempContext) return null;
 
-    tempCtx.drawImage(mainCanvas, 0, 0);
-    tempCtx.drawImage(editorCanvasRef.current, 0, 0);
+    tempContext.drawImage(mainCanvas, 0, 0);
+    tempContext.drawImage(editorCanvasRef.current, 0, 0);
 
     if (stickerCanvasRef.current)
-      tempCtx.drawImage(stickerCanvasRef.current, 0, 0);
+      tempContext.drawImage(stickerCanvasRef.current, 0, 0);
 
     return tempCanvas;
   }, []);
@@ -429,14 +432,14 @@ export const CameraProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return (
-    <CanvasCtx.Provider value={canvasValue}>
-      <StateCtx.Provider value={stateValue}>
-        <ActionCtx.Provider value={actionValue}>
+    <CanvasContext value={canvasValue}>
+      <StateContext value={stateValue}>
+        <ActionContext value={actionValue}>
           <canvas ref={canvasRef} className='hidden' />
           <canvas ref={stickerCanvasRef} className='hidden' />
           {children}
-        </ActionCtx.Provider>
-      </StateCtx.Provider>
-    </CanvasCtx.Provider>
+        </ActionContext>
+      </StateContext>
+    </CanvasContext>
   );
 };

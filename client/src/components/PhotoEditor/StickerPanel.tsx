@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import stickersJson from '../../assets/stickers/json/stickers.json';
@@ -34,6 +34,13 @@ const StickerPanel = ({ activeStickerSrc, onSelect }: StickerPanelProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [page, setPage] = useState(0);
 
+  // 切換分類時重置頁碼
+  const [prevCategory, setPrevCategory] = useState(activeCategory);
+  if (prevCategory !== activeCategory) {
+    setPrevCategory(activeCategory);
+    setPage(0);
+  }
+
   const filtered = useMemo(
     () =>
       activeCategory === 'all'
@@ -43,10 +50,6 @@ const StickerPanel = ({ activeStickerSrc, onSelect }: StickerPanelProps) => {
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-
-  useEffect(() => {
-    setPage(0);
-  }, [activeCategory]);
 
   const visible = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
