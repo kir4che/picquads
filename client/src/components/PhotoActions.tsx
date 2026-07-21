@@ -7,7 +7,11 @@ import { useCanvasRefs, useCameraActions } from '../hooks/useCamera';
 
 import QRCode from './QRCode';
 
-const PhotoActions = () => {
+interface PhotoActionsProps {
+  uploadCacheKey: string;
+}
+
+const PhotoActions = ({ uploadCacheKey }: PhotoActionsProps) => {
   const { setAlert } = useAlert();
   const { canvasRef } = useCanvasRefs();
   const { resetCamera, getCompositedCanvas } = useCameraActions();
@@ -16,12 +20,19 @@ const PhotoActions = () => {
   const [qrCode, setQrCode] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadedCacheKey, setUploadedCacheKey] = useState<string>('');
 
   // 生成 URL、QR Code
   const handleGenerateUrlAndQRCode = async () => {
     const combinedCanvas = getCompositedCanvas();
     const sourceCanvas = combinedCanvas || canvasRef.current;
     if (!sourceCanvas) return;
+
+    // 若編輯內容沒變，直接打開 modal，不再重新上傳。
+    if (uploadCacheKey === uploadedCacheKey && link && qrCode) {
+      setIsModalOpen(true);
+      return;
+    }
 
     try {
       setIsUploading(true);
@@ -39,10 +50,13 @@ const PhotoActions = () => {
       const formData = new FormData();
       formData.append('file', blob, 'photo.jpeg');
 
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (!res.ok) throw new Error('Upload failed');
 
@@ -51,8 +65,8 @@ const PhotoActions = () => {
       const { url, qrCode } = data;
       setLink(url);
       setQrCode(qrCode);
+      setUploadedCacheKey(uploadCacheKey);
       setIsModalOpen(true);
-      setAlert('Photo uploaded successfully!', 'success');
     } catch (err) {
       setAlert(
         err instanceof Error ? err.message : 'Failed to upload photo.',

@@ -282,6 +282,48 @@ const PhotoEditor = () => {
     ? getDisplaySize(dimensions.canvas, containerWidth)
     : { width: 0, height: 0 };
 
+  // 取得合併好的 canvas，若沒有則回傳 null。
+  const uploadCacheKey = useMemo(
+    () =>
+      JSON.stringify({
+        frameId: state.frame.id,
+        captures: state.capturedImages.map(
+          ({ url, facingMode, timestamp }) => ({
+            url,
+            facingMode,
+            timestamp,
+          })
+        ),
+        frameColor,
+        filter,
+        dateFormat,
+        timeFormat,
+        customTextConfig,
+        stickers: stickers.map(
+          ({ id, src, x, y, width, height, rotation, zIndex }) => ({
+            id,
+            src,
+            x,
+            y,
+            width,
+            height,
+            rotation,
+            zIndex,
+          })
+        ),
+      }),
+    [
+      state.frame.id,
+      state.capturedImages,
+      frameColor,
+      filter,
+      dateFormat,
+      timeFormat,
+      customTextConfig,
+      stickers,
+    ]
+  );
+
   return (
     <div
       className='flex w-full flex-col items-center gap-y-2 px-4 md:gap-y-4'
@@ -326,7 +368,7 @@ const PhotoEditor = () => {
       {loadStatus === 'success' && (
         <div className='flex w-full flex-col items-center gap-y-4 md:flex-row md:items-start md:justify-center md:gap-x-8'>
           <div className='order-2 w-full max-w-md space-y-4 md:order-1 md:w-80 md:shrink-0'>
-            <PhotoActions />
+            <PhotoActions uploadCacheKey={uploadCacheKey} />
             <CustomText
               customTextConfig={customTextConfig}
               setCustomTextConfig={setCustomTextConfig}
