@@ -1,4 +1,5 @@
-import { Link, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Copy, X } from 'lucide-react';
 
 interface QRCodeProps {
   qrCode: string;
@@ -8,6 +9,20 @@ interface QRCodeProps {
 }
 
 const QRCode = ({ qrCode, link, isOpen, onClose }: QRCodeProps) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isCopied) return;
+
+    const timeoutId = window.setTimeout(() => setIsCopied(false), 2000);
+    return () => window.clearTimeout(timeoutId);
+  }, [isCopied]);
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(link);
+    setIsCopied(true);
+  };
+
   if (!isOpen || !qrCode || !link) return null;
 
   return (
@@ -40,15 +55,14 @@ const QRCode = ({ qrCode, link, isOpen, onClose }: QRCodeProps) => {
         </div>
 
         <div className='mt-2 flex w-full flex-col items-center gap-y-1'>
-          <a
-            href={link}
+          <button
+            type='button'
             className='flex w-full items-center justify-center gap-x-2 rounded-lg bg-violet-50 px-4 py-2 text-center font-medium text-violet-500 transition-colors hover:text-violet-600'
-            target='_blank'
-            rel='noopener noreferrer'
+            onClick={handleCopyLink}
           >
-            <Link size={16} />
-            Copy Link
-          </a>
+            <Copy size={16} />
+            {isCopied ? 'Copied!' : 'Copy Link'}
+          </button>
           <p className='mt-2 text-center text-xs text-gray-400'>
             Link & QR Code will expire in 30 minutes.
           </p>
